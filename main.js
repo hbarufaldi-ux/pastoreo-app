@@ -1,36 +1,35 @@
-map.on('load', () => {
-    // 1. CARGAMOS LOS LOTES DE TAMBO (Color Azul)
-    map.addSource('tambo', { 'type': 'geojson', 'data': './lotes_tambo.geojson' });
-    map.addLayer({
-        'id': 'capa-tambo',
-        'type': 'fill',
-        'source': 'tambo',
-        'paint': { 'fill-color': '#3498db', 'fill-opacity': 0.5 }
-    });
+// 1. Inicializar el mapa centrado en tu zona (Villa María aprox)
+const map = L.map('map').setView([-32.41, -63.24], 13);
 
-    // 2. CARGAMOS LOS LOTES DE CRÍA (Color Naranja)
-    map.addSource('cria', { 'type': 'geojson', 'data': './lotes_cria.geojson' });
-    map.addLayer({
-        'id': 'capa-cria',
-        'type': 'fill',
-        'source': 'cria',
-        'paint': { 'fill-color': '#e67e22', 'fill-opacity': 0.5 }
-    });
+// 2. Capa Satelital de Esri (Gratis y muy buena calidad)
+L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+}).addTo(map);
 
-    // 3. CARGAMOS AGRICULTURA (Color Amarillo)
-    map.addSource('agricultura', { 'type': 'geojson', 'data': './lote_agricultura.geojson' });
-    map.addLayer({
-        'id': 'capa-agricultura',
-        'type': 'fill',
-        'source': 'agricultura',
-        'paint': { 'fill-color': '#f1c40f', 'fill-opacity': 0.4 }
-    });
+// 3. Función para cargar los GeoJSON
+function cargarLote(url, color, nombreCapa) {
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            L.geoJSON(data, {
+                style: {
+                    color: "white",   // Color del borde
+                    weight: 2,
+                    fillColor: color, // Color del interior
+                    fillOpacity: 0.5
+                },
+                onEachFeature: function (feature, layer) {
+                    layer.on('click', function () {
+                        document.getElementById('lote-nombre').innerText = feature.properties.name || nombreCapa;
+                    });
+                }
+            }).addTo(map);
+            document.getElementById('lote-nombre').innerText = "Mapa Listo";
+        })
+        .catch(err => console.error("Error cargando " + url, err));
+}
 
-    // BORDES BLANCOS PARA TODOS
-    map.addLayer({
-        'id': 'bordes',
-        'type': 'line',
-        'source': 'tambo', // Usamos uno como referencia para el estilo de línea
-        'paint': { 'line-color': '#ffffff', 'line-width': 2 }
-    });
-});
+// 4. Llamamos a tus archivos específicos
+cargarLote('./lotes_tambo.geojson', '#3498db', 'Tambo');
+cargarLote('./lotes_cria.geojson', '#e67e22', 'Cría');
+cargarLote('./lote_agriculture.geojson', '#f1c40f', 'Agricultura');
