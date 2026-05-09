@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "Plantacion",
+"features": [
+{ "type": "Feature", "properties": { "Name": "plantas 1" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -63.4560901, -33.0042028, 185.227653 ], [ -63.4547855, -33.0044224, 185.6119994 ], [ -63.4545152, -33.0033071, 185.2165932 ], [ -63.4559125, -33.0030325, 185.6652753 ], [ -63.4560901, -33.0042028, 185.227653 ] ] ] } },
+{ "type": "Feature", "properties": { "Name": "plantas 2" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -63.4545074, -33.0032702, 185.218909 ], [ -63.4523542, -33.0037532, 184.676514 ], [ -63.4519896, -33.0027489, 183.4666905 ], [ -63.4542734, -33.002292, 183.9367072 ], [ -63.4545074, -33.0032702, 185.218909 ] ] ] } },
+{ "type": "Feature", "properties": { "Name": "1,62 ha" }, "geometry": { "type": "Point", "coordinates": [ -63.4556843, -33.0038061, 185.4010605 ] } },
+{ "type": "Feature", "properties": { "Name": "2,44 ha" }, "geometry": { "type": "Point", "coordinates": [ -63.4538274, -33.0029302, 0.0 ] } }
+]
+}

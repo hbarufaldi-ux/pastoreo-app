@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "lote agricultura",
+"features": [
+{ "type": "Feature", "properties": { "Name": "A1 43 ha" }, "geometry": { "type": "Point", "coordinates": [ -63.4800797, -33.0016856, 194.5403601 ] } },
+{ "type": "Feature", "properties": { "Name": "A1 soja ancho" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -63.4838002, -33.0036635, 193.6149781 ], [ -63.4772541, -33.004914, 194.5041871 ], [ -63.4754622, -32.9990049, 191.6803488 ], [ -63.4822172, -32.9976519, 194.5054268 ], [ -63.4838002, -33.0036635, 193.6149781 ] ] ] } }
+]
+}

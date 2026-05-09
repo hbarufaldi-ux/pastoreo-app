@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"name": "Relevamiento tierra y uso",
+"features": [
+{ "type": "Feature", "properties": { "Name": "Cañada Negra" }, "geometry": { "type": "Point", "coordinates": [ -63.4573317, -33.0060915, 186.9877387 ] } }
+]
+}
