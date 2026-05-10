@@ -1,48 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pastoreo App</title>
-    <link rel="stylesheet" href="https://unpkg.com" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pastoreo App — Tambo Cañada Negra</title>
+
+    <!-- CORRECCIÓN 1: URL completa de Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
-        #map { height: 100vh; width: 100%; background: #1a1a1a; }
-        body { margin: 0; padding: 0; }
-        .panel { position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1C1C1E; }
+
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+
+        /* Panel superior */
+        .top-bar {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(28,28,30,0.92); color: #fff;
+            padding: 8px 18px; border-radius: 20px;
+            font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
+            backdrop-filter: blur(8px); white-space: nowrap;
+        }
+
+        /* Botones de capa */
+        .layer-control {
+            position: absolute; top: 12px; right: 12px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .layer-btn {
+            background: rgba(28,28,30,0.92); color: #fff; border: none;
+            padding: 8px 14px; border-radius: 10px; font-size: 13px;
+            cursor: pointer; backdrop-filter: blur(8px); text-align: left;
+            transition: background 0.15s;
+        }
+        .layer-btn:hover { background: rgba(60,60,62,0.95); }
+        .layer-btn.active { background: #2563eb; }
+
+        /* Leyenda */
+        .legend {
+            position: absolute; bottom: 24px; right: 12px; z-index: 1000;
+            background: rgba(28,28,30,0.90); color: #fff; border-radius: 12px;
+            padding: 12px 16px; font-size: 13px; backdrop-filter: blur(8px);
+            min-width: 160px;
+        }
+        .legend h4 { font-size: 12px; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+        /* Info panel al hacer click */
+        .info-card {
+            position: absolute; bottom: 24px; left: 12px; z-index: 1000;
+            background: rgba(28,28,30,0.95); color: #fff; border-radius: 14px;
+            padding: 14px 18px; font-size: 13px; backdrop-filter: blur(8px);
+            min-width: 200px; display: none;
+        }
+        .info-card h3 { font-size: 15px; margin-bottom: 6px; }
+        .info-card p { color: #bbb; margin-bottom: 3px; }
+        .info-card .badge {
+            display: inline-block; padding: 2px 10px; border-radius: 10px;
+            font-size: 12px; font-weight: 600; margin-top: 4px;
+        }
     </style>
 </head>
 <body>
-    <div class="panel"><b>App Pastoreo</b> - Cargando lotes...</div>
-    <div id="map"></div>
 
-    <script src="https://unpkg.com"></script>
-    <script>
-        const map = L.map('map').setView([-32.41, -63.24], 13);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+<div class="top-bar">🌿 Gestión de Pastoreo — Cañada Negra</div>
 
-        const grupo = new L.FeatureGroup().addTo(map);
+<div class="layer-control">
+    <button class="layer-btn active" onclick="setLayer('satellite', this)">🛰 Satélite</button>
+    <button class="layer-btn" onclick="setLayer('osm', this)">🗺 Callejero</button>
+    <button class="layer-btn" onclick="setLayer('topo', this)">⛰ Topográfico</button>
+</div>
 
-        function cargar(archivo, color) {
-            fetch('./' + archivo)
-                .then(res => {
-                    if(!res.ok) throw new Error("No encontrado");
-                    return res.json();
-                })
-                .then(data => {
-                    L.geoJSON(data, {
-                        style: { color: "white", fillColor: color, fillOpacity: 0.5, weight: 2 }
-                    }).addTo(grupo);
-                    // Esto te lleva a los lotes automáticamente
-                    map.fitBounds(grupo.getBounds());
-                    document.querySelector('.panel').innerHTML = "<b>App Pastoreo</b> - Lotes OK";
-                })
-                .catch(err => console.log("Error con: " + archivo));
-        }
+<div class="legend">
+    <h4>Cultivos</h4>
+    <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div> Alfalfa / Verdeo</div>
+    <div class="legend-item"><div class="legend-color" style="background:#f97316"></div> Sorgo / Cebada</div>
+    <div class="legend-item"><div class="legend-color" style="background:#22c55e"></div> Maíz</div>
+    <div class="legend-item"><div class="legend-color" style="background:#a855f7"></div> Otros</div>
+</div>
 
-        // Usamos los nuevos nombres de archivos .json
-        cargar('tambo.json', '#3498db');
-        cargar('cria.json', '#e67e22');
-        cargar('agri.json', '#f1c40f');
-    </script>
+<div class="info-card" id="info-card">
+    <h3 id="info-nombre">—</h3>
+    <p id="info-cultivo">—</p>
+    <p id="info-ha">—</p>
+    <span class="badge" id="info-badge">—</span>
+</div>
+
+<div id="map"></div>
+
+<!-- CORRECCIÓN 2: URL completa de Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// CORRECCIÓN 3: GeoJSON embebido directamente (evita problemas de fetch/CORS en GitHub Pages)
+// El archivo lotes_tambo.geojson tenía nombre con espacios — acá va incrustado
+const GEOJSON_LOTES = {"type":"FeatureCollection","name":"lotes de tambo","features":[{"type":"Feature","properties":{"Name":"A2 31 ha"},"geometry":{"type":"Point","coordinates":[-63.4735423,-33.0026298]}},{"type":"Feature","properties":{"Name":"A2 alfa/verdeo ancho"},"geometry":{"type":"Polygon","coordinates":[[[-63.4699291,-33.0001203],[-63.4751928,-32.9990439],[-63.4759431,-33.0019174],[-63.4751459,-33.0021818],[-63.4753154,-33.0027864],[-63.4756191,-33.0028713],[-63.4762264,-33.0050056],[-63.4714964,-33.0058888],[-63.4699291,-33.0001203]]]}},{"type":"Feature","properties":{"Name":"C1 31 ha"},"geometry":{"type":"Point","coordinates":[-63.466467,-33.0040094]}},{"type":"Feature","properties":{"Name":"C1 cebada baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4714381,-33.0059596],[-63.4647053,-33.0071578],[-63.4637052,-33.0032671],[-63.4639054,-33.0028721],[-63.4701876,-33.0016106],[-63.4714381,-33.0059596]]]}},{"type":"Feature","properties":{"Name":"C2 22 ha"},"geometry":{"type":"Point","coordinates":[-63.4622715,-33.005342]}},{"type":"Feature","properties":{"Name":"C2 sorgo/alfa baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4646791,-33.0071784],[-63.4599125,-33.008065],[-63.4588861,-33.0037786],[-63.4633262,-33.002972],[-63.4636878,-33.0032658],[-63.4646791,-33.0071784]]]}},{"type":"Feature","properties":{"Name":"C3 33 ha"},"geometry":{"type":"Point","coordinates":[-63.4661699,-33.0008577]}},{"type":"Feature","properties":{"Name":"C3 alfa baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4638922,-33.0028724],[-63.4634974,-33.002692],[-63.4620599,-32.9967888],[-63.4642862,-32.9963743],[-63.4655326,-32.9975933],[-63.4658534,-32.9989138],[-63.469431,-32.9982001],[-63.4703178,-33.0015643],[-63.4638922,-33.0028724]]]}},{"type":"Feature","properties":{"Name":"C4 45 ha"},"geometry":{"type":"Point","coordinates":[-63.4609756,-33.0006048]}},{"type":"Feature","properties":{"Name":"C4 cebada baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4635171,-33.0026689],[-63.4632525,-33.0029342],[-63.4578335,-33.0039237],[-63.4573677,-33.0022584],[-63.4558496,-33.0024977],[-63.4547421,-32.9981138],[-63.4620209,-32.9967933],[-63.4635171,-33.0026689]]]}},{"type":"Feature","properties":{"Name":"C5 34 ha"},"geometry":{"type":"Point","coordinates":[-63.4523713,-33.0085375]}},{"type":"Feature","properties":{"Name":"C5 alfa"},"geometry":{"type":"Polygon","coordinates":[[[-63.4547284,-33.0045439],[-63.4561181,-33.008881],[-63.4487319,-33.0103068],[-63.447742,-33.0060082],[-63.4547284,-33.0045439]]]}},{"type":"Feature","properties":{"Name":"L1 34 ha"},"geometry":{"type":"Point","coordinates":[-63.4802262,-33.014737]}},{"type":"Feature","properties":{"Name":"L1 maiz latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4865391,-33.0141363],[-63.4673676,-33.0176911],[-63.4669266,-33.0160403],[-63.486988,-33.0124252],[-63.4865391,-33.0141363]]]}},{"type":"Feature","properties":{"Name":"L2 17 ha"},"geometry":{"type":"Point","coordinates":[-63.4635829,-33.017664]}},{"type":"Feature","properties":{"Name":"L2 maiz latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4580033,-33.0194698],[-63.4575004,-33.017704],[-63.4669319,-33.0160438],[-63.4674214,-33.0177331],[-63.4580033,-33.0194698]]]}},{"type":"Feature","properties":{"Name":"L3 10 ha"},"geometry":{"type":"Point","coordinates":[-63.4559918,-33.0188455]}},{"type":"Feature","properties":{"Name":"L3 sorgo latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4528989,-33.0204513],[-63.4523747,-33.0187036],[-63.4573793,-33.0177025],[-63.4579254,-33.0194486],[-63.4528989,-33.0204513]]]}},{"type":"Feature","properties":{"Name":"L5 27 ha"},"geometry":{"type":"Point","coordinates":[-63.455105,-33.0110087]}},{"type":"Feature","properties":{"Name":"L5 alfa latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4580765,-33.0121796],[-63.4508659,-33.0135546],[-63.4498988,-33.010095],[-63.4571555,-33.0086868],[-63.4580765,-33.0121796]]]}}]};
+
+// Función para determinar color según el cultivo
+function getColor(name) {
+    const n = (name || '').toLowerCase();
+    if (n.includes('alfa') || n.includes('verdeo')) return '#3b82f6';
+    if (n.includes('sorgo') || n.includes('cebada')) return '#f97316';
+    if (n.includes('maiz') || n.includes('maíz')) return '#22c55e';
+    return '#a855f7';
+}
+
+function getBadgeStyle(name) {
+    const n = (name || '').toLowerCase();
+    if (n.includes('alfa') || n.includes('verdeo')) return 'background:#1d4ed8;color:#bfdbfe';
+    if (n.includes('sorgo') || n.includes('cebada')) return 'background:#c2410c;color:#fed7aa';
+    if (n.includes('maiz') || n.includes('maíz')) return 'background:#15803d;color:#bbf7d0';
+    return 'background:#7e22ce;color:#e9d5ff';
+}
+
+// Tiles disponibles
+const tileLayers = {
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, AeroGRID, IGN',
+        maxZoom: 19
+    }),
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }),
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenTopoMap',
+        maxZoom: 17
+    })
+};
+
+// CORRECCIÓN 4: coordenadas correctas del campo
+const map = L.map('map').setView([-33.005, -63.463], 14);
+let currentTile = tileLayers.satellite;
+currentTile.addTo(map);
+
+function setLayer(name, btn) {
+    map.removeLayer(currentTile);
+    currentTile = tileLayers[name];
+    currentTile.addTo(map);
+    document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+}
+
+// Etiquetas de referencia (puntos con superficie)
+const labels = {};
+GEOJSON_LOTES.features
+    .filter(f => f.geometry.type === 'Point')
+    .forEach(f => {
+        const key = f.properties.Name.split(' ')[0];
+        labels[key] = f.properties.Name;
+    });
+
+// Dibujar polígonos
+const bounds = [];
+GEOJSON_LOTES.features
+    .filter(f => f.geometry.type === 'Polygon')
+    .forEach(feature => {
+        const name = feature.properties.Name;
+        const color = getColor(name);
+        const coords2d = feature.geometry.coordinates[0].map(c => [c[1], c[0]]);
+        bounds.push(...coords2d);
+
+        const poly = L.polygon(coords2d, {
+            color: 'rgba(255,255,255,0.7)',
+            weight: 1.5,
+            fillColor: color,
+            fillOpacity: 0.4
+        });
+
+        // Etiqueta sobre el lote
+        const center = poly.getBounds().getCenter();
+        const loteKey = name.split(' ')[0];
+        const labelText = labels[loteKey] || name;
+        const cultivar = name.replace(/^[A-Z]\d+ /, '').replace(' baru', '').replace(' latorre', '');
+
+        L.marker(center, {
+            icon: L.divIcon({
+                className: '',
+                html: `<div style="
+                    background:rgba(0,0,0,0.65);color:#fff;
+                    font-size:11px;font-weight:700;
+                    padding:3px 7px;border-radius:6px;
+                    white-space:nowrap;font-family:system-ui,sans-serif;
+                    border:1px solid rgba(255,255,255,0.25);
+                    transform:translateX(-50%);
+                ">${labelText}</div>`,
+                iconAnchor: [0, 0]
+            })
+        }).addTo(map);
+
+        // Hover
+        poly.on('mouseover', function() {
+            this.setStyle({ fillOpacity: 0.65, weight: 2.5 });
+        });
+        poly.on('mouseout', function() {
+            this.setStyle({ fillOpacity: 0.4, weight: 1.5 });
+        });
+
+        // Click → panel de info
+        poly.on('click', function() {
+            const card = document.getElementById('info-card');
+            const haMatch = labelText.match(/(\d+) ha/);
+            document.getElementById('info-nombre').textContent = labelText;
+            document.getElementById('info-cultivo').textContent = '🌱 ' + cultivar;
+            document.getElementById('info-ha').textContent = haMatch ? '📐 Superficie: ' + haMatch[0] : '';
+            const badge = document.getElementById('info-badge');
+            badge.textContent = cultivar;
+            badge.style.cssText = getBadgeStyle(name);
+            card.style.display = 'block';
+        });
+
+        poly.addTo(map);
+    });
+
+// Ajustar vista a los lotes
+if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [60, 60] });
+}
+
+// Cerrar info card al click en mapa
+map.on('click', function(e) {
+    if (!e.originalEvent.target.closest) return;
+    document.getElementById('info-card').style.display = 'none';
+});
+</script>
+
 </body>
 </html>
