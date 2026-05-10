@@ -1,8 +1,8 @@
 const map = L.map('map').setView([-32.41, -63.24], 14);
 
-// CAPA SATELITAL CORREGIDA (URL oficial y estable)
-L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri'
+// SATÉLITE DE GOOGLE (Esta URL es la más compatible de todas)
+L.tileLayer('https://google.com{x}&y={y}&z={z}', {
+    attribution: 'Google Maps'
 }).addTo(map);
 
 const grupoLotes = new L.FeatureGroup().addTo(map);
@@ -10,16 +10,13 @@ const grupoLotes = new L.FeatureGroup().addTo(map);
 function cargarLote(archivo, color, nombreTipo) {
     fetch(archivo)
         .then(res => {
-            if (!res.ok) throw new Error("Error en " + archivo);
+            if (!res.ok) throw new Error("Error al leer: " + archivo);
             return res.json();
         })
         .then(data => {
             L.geoJSON(data, {
-                // 1. ESTO ELIMINA LOS MARCADORES AZULES/PUNTOS
-                filter: function(feature) {
-                    return feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon";
-                },
-                // 2. ESTILO DE LOS LOTES
+                // Elimina puntos/marcadores azules
+                filter: (f) => f.geometry.type.includes('Polygon'),
                 style: { 
                     color: "white", 
                     weight: 1, 
@@ -32,18 +29,14 @@ function cargarLote(archivo, color, nombreTipo) {
                 }
             }).addTo(grupoLotes);
             
-            // Ajustar el mapa para ver todos los lotes
             if (grupoLotes.getLayers().length > 0) {
                 map.fitBounds(grupoLotes.getBounds());
             }
         })
-        .catch(err => console.warn("Archivo omitido o con error:", err.message));
+        .catch(err => console.warn(err.message));
 }
 
-// Carga de tus archivos
+// Carga de archivos
 cargarLote('lotes_tambo.geojson', '#3498db', 'Tambo');
 cargarLote('lotes_cria.geojson', '#e67e22', 'Cría');
 cargarLote('lote_agricultura.geojson', '#f1c40f', 'Agricultura');
-
-// Refrescar tamaño al cargar
-setTimeout(() => { map.invalidateSize(); }, 500);
