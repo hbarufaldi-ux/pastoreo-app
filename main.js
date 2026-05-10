@@ -1,8 +1,8 @@
 const map = L.map('map').setView([-32.41, -63.24], 14);
 
 // SATÉLITE DE GOOGLE (Esta URL es la más compatible de todas)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
+L.tileLayer('https://google.cn{x}&y={y}&z={z}', {
+    attribution: 'Google Satellite'
 }).addTo(map);
 
 
