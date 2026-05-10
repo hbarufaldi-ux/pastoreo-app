@@ -1,8 +1,8 @@
 const map = L.map('map').setView([-32.41, -63.24], 14);
 
 // SATÉLITE DE GOOGLE (Esta URL es la más compatible de todas)
-L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri'
+L.tileLayer('https://fastly.net{z}/{x}/{y}.jpg', {
+    attribution: 'Terrain'
 }).addTo(map);
 
 
