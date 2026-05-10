@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pastoreo App</title>
     
-    <!-- LIBRERIAS LEAFLET CORREGIDAS -->
+    <!-- LIBRERIAS CON DEFER PARA ASEGURAR ORDEN -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com" defer></script>
+    <script src="main.js" defer></script>
 
     <style>
         body { margin: 0; padding: 0; }
@@ -20,9 +21,7 @@
     </style>
 </head>
 <body>
-    <div class="info-panel"><h3 id="lote-nombre">Mapa de Lotes</h3></div>
+    <div class="info-panel"><h3>Mapa de Lotes</h3></div>
     <div id="map"></div>
-
-    <script src="main.js"></script>
 </body>
 </html>
