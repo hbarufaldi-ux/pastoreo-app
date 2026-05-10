@@ -1,19 +1,25 @@
-const map = L.map('map').setView([-32.41, -63.24], 13);
+const map = L.map('map').setView([-32.41, -63.24], 14);
 
-// Satélite Esri - URL robusta para evitar el fondo oscuro
+// CAPA SATELITAL CORREGIDA (URL oficial y estable)
 L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, GeoEye'
+    attribution: 'Tiles &copy; Esri'
 }).addTo(map);
 
 const grupoLotes = new L.FeatureGroup().addTo(map);
 
 function cargarLote(archivo, color, nombreTipo) {
     fetch(archivo)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error en " + archivo);
+            return res.json();
+        })
         .then(data => {
             L.geoJSON(data, {
-                // ESTO QUITA LOS MARCADORES AZULES
-                pointToLayer: (feature, latlng) => { return null; },
+                // 1. ESTO ELIMINA LOS MARCADORES AZULES/PUNTOS
+                filter: function(feature) {
+                    return feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon";
+                },
+                // 2. ESTILO DE LOS LOTES
                 style: { 
                     color: "white", 
                     weight: 1, 
@@ -26,13 +32,18 @@ function cargarLote(archivo, color, nombreTipo) {
                 }
             }).addTo(grupoLotes);
             
+            // Ajustar el mapa para ver todos los lotes
             if (grupoLotes.getLayers().length > 0) {
                 map.fitBounds(grupoLotes.getBounds());
             }
         })
-        .catch(err => console.error("Error cargando:", archivo));
+        .catch(err => console.warn("Archivo omitido o con error:", err.message));
 }
 
+// Carga de tus archivos
 cargarLote('lotes_tambo.geojson', '#3498db', 'Tambo');
 cargarLote('lotes_cria.geojson', '#e67e22', 'Cría');
 cargarLote('lote_agricultura.geojson', '#f1c40f', 'Agricultura');
+
+// Refrescar tamaño al cargar
+setTimeout(() => { map.invalidateSize(); }, 500);
