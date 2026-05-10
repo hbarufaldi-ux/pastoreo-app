@@ -1,63 +1,48 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pastoreo App</title>
-    
-    <!-- 1. Cargamos el CSS de Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    
     <style>
+        #map { height: 100vh; width: 100%; background: #1a1a1a; }
         body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; background: #2c3e50; }
-        .info-panel {
-            position: absolute; top: 10px; left: 50px; z-index: 1000;
-            background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            font-family: Arial, sans-serif;
-        }
+        .panel { position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; font-family: sans-serif; }
     </style>
 </head>
 <body>
-    <div class="info-panel"><h3>Gestión de Pastoreo</h3></div>
+    <div class="panel"><b>App Pastoreo</b> - Cargando lotes...</div>
     <div id="map"></div>
 
-    <!-- 2. Cargamos el JS de Leaflet -->
     <script src="https://unpkg.com"></script>
-
-    <!-- 3. Tu lógica directamente aquí para evitar errores de carga -->
     <script>
-        // Esperamos a que la librería esté lista
-        window.onload = function() {
-            if (typeof L !== 'undefined') {
-                const map = L.map('map').setView([-32.41, -63.24], 14);
+        const map = L.map('map').setView([-32.41, -63.24], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
+        const grupo = new L.FeatureGroup().addTo(map);
 
-                const grupoLotes = new L.FeatureGroup().addTo(map);
+        function cargar(archivo, color) {
+            fetch('./' + archivo)
+                .then(res => {
+                    if(!res.ok) throw new Error("No encontrado");
+                    return res.json();
+                })
+                .then(data => {
+                    L.geoJSON(data, {
+                        style: { color: "white", fillColor: color, fillOpacity: 0.5, weight: 2 }
+                    }).addTo(grupo);
+                    // Esto te lleva a los lotes automáticamente
+                    map.fitBounds(grupo.getBounds());
+                    document.querySelector('.panel').innerHTML = "<b>App Pastoreo</b> - Lotes OK";
+                })
+                .catch(err => console.log("Error con: " + archivo));
+        }
 
-                function cargarLote(archivo, color, nombreTipo) {
-                    fetch(archivo)
-                        .then(res => res.json())
-                        .then(data => {
-                            L.geoJSON(data, {
-                                filter: (f) => f.geometry.type.includes('Polygon'),
-                                style: { color: "white", weight: 1, fillColor: color, fillOpacity: 0.5 },
-                                onEachFeature: (f, l) => { l.bindPopup("<b>" + nombreTipo + "</b>"); }
-                            }).addTo(grupoLotes);
-                            map.fitBounds(grupoLotes.getBounds());
-                        })
-                        .catch(err => console.log("No se pudo cargar: " + archivo));
-                }
-
-                // Llamadas a tus archivos
-                cargarLote('./lotes_tambo.geojson', '#3498db', 'Tambo');
-                cargarLote('./lotes_cria.geojson', '#e67e22', 'Cría');
-                cargarLote('./lote_agricultura.geojson', '#f1c40f', 'Agricultura');
-            }
-        };
+        // Usamos los nuevos nombres de archivos .json
+        cargar('tambo.json', '#3498db');
+        cargar('cria.json', '#e67e22');
+        cargar('agri.json', '#f1c40f');
     </script>
 </body>
 </html>
