@@ -1,9 +1,10 @@
 const map = L.map('map').setView([-32.41, -63.24], 14);
 
 // SATÉLITE DE GOOGLE (Esta URL es la más compatible de todas)
-L.tileLayer('https://google.com{x}&y={y}&z={z}', {
-    attribution: 'Google Maps'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
+
 
 const grupoLotes = new L.FeatureGroup().addTo(map);
 
