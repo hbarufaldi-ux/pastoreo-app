@@ -1,231 +1,785 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pastoreo App — Tambo Cañada Negra</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pastoreo App</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#111113;--surface:#1C1C1E;--surface2:#2C2C2E;--surface3:#3A3A3C;
+  --border:rgba(255,255,255,0.09);--text:#F2F2F7;--muted:#8E8E93;
+  --green:#22c55e;--blue:#3b82f6;--orange:#f97316;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{height:52px;background:rgba(17,17,19,0.97);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:500;}
+.tb-logo{font-size:15px;font-weight:800;}.tb-logo span{color:var(--green);}
+.tb-nav{display:flex;gap:2px;}
+.tb-navbtn{background:transparent;border:none;color:var(--muted);font-size:13px;padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:500;}
+.tb-navbtn.active{background:var(--surface2);color:var(--text);font-weight:700;}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+.sync-dot.syncing{background:var(--amber);animation:blink 1s infinite;}
+.sync-dot.err{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.screen{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.screen.active{display:flex;}
+/* ── PASTOREO ── */
+#sc-pastoreo{flex-direction:row;}
+#map-wrap{position:relative;flex:1;}
+#map{width:100%;height:100%;}
+#side-panel{width:290px;background:var(--surface);border-left:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .25s;}
+#side-panel.collapsed{width:0;}
+.sp-header{padding:12px 14px 0;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.sp-tabs{display:flex;gap:2px;margin-top:8px;}
+.sp-tab{flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;border-bottom:2px solid transparent;}
+.sp-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.sp-body{flex:1;overflow-y:auto;padding:10px;}
+.lote-chip{background:rgba(10,10,14,0.88);border:1.5px solid rgba(255,255,255,0.22);border-radius:12px;padding:7px 13px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;cursor:pointer;backdrop-filter:blur(8px);text-align:center;line-height:1.6;transform:translateX(-50%);box-shadow:0 3px 12px rgba(0,0,0,0.5);min-width:90px;}
+.lote-chip:hover{transform:translateX(-50%) scale(1.06);}
+.lote-chip.ocupado{border-color:rgba(34,197,94,0.6);}
+.lote-chip.descanso{border-color:rgba(245,158,11,0.6);}
+.chip-top{font-size:13px;font-weight:800;letter-spacing:0.2px;}
+.chip-bot{font-size:11px;font-weight:600;margin-top:2px;}
+.chip-bot.green{color:#86efac;}.chip-bot.amber{color:#fcd34d;}.chip-bot.red{color:#fca5a5;}.chip-bot.blue{color:#93c5fd;}
+#fam{position:absolute;z-index:600;min-width:248px;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.55);display:none;overflow:hidden;}
+#fam.open{display:block;}
+#fam-header{padding:13px 15px 10px;border-bottom:0.5px solid var(--border);position:relative;padding-right:36px;}
+#fam-nombre{font-size:15px;font-weight:800;}
+#fam-info{font-size:12px;color:var(--muted);margin-top:2px;}
+#fam-close{position:absolute;top:9px;right:9px;background:var(--surface2);border:none;color:var(--muted);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+#fam-body{padding:10px 12px 13px;}
+.fam-sect{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:9px 0 5px;}
+.fam-btn{display:flex;align-items:center;gap:10px;width:100%;background:var(--surface2);border:none;color:var(--text);font-size:13px;font-weight:600;padding:9px 11px;border-radius:10px;cursor:pointer;margin-bottom:5px;text-align:left;transition:background .12s;}
+.fam-btn:hover{background:var(--surface3);}
+.fam-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.fam-icon{width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.fam-stats{font-size:12px;color:var(--muted);line-height:1.9;}
+.fam-stats b{color:var(--text);}
+#bs{position:absolute;bottom:0;left:0;right:0;z-index:700;background:var(--surface);border-radius:20px 20px 0 0;border-top:0.5px solid var(--border);padding:0 16px 32px;max-height:78vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+#bs.open{transform:translateY(0);}
+.bs-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:12px auto 15px;}
+.bs-title{font-size:17px;font-weight:800;margin-bottom:3px;}
+.bs-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+#legend{position:absolute;bottom:16px;right:12px;z-index:400;background:rgba(17,17,19,0.88);border:0.5px solid var(--border);border-radius:12px;padding:9px 13px;backdrop-filter:blur(8px);}
+#legend h4{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;color:#ccc;}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.map-hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(17,17,19,0.88);color:#ccc;font-size:12px;padding:7px 16px;border-radius:20px;backdrop-filter:blur(8px);pointer-events:none;white-space:nowrap;transition:opacity .3s;}
+.lr{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;margin-bottom:3px;cursor:pointer;transition:background .12s;border:0.5px solid transparent;}
+.lr:hover{background:var(--surface2);}
+.lr.sel{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);}
+.lr-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.lr-info{flex:1;min-width:0;}
+.lr-nombre{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lr-sub{font-size:10px;color:var(--muted);}
+.lr-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;}
+.gantt-row{display:flex;align-items:center;margin-bottom:5px;}
+.gantt-name{font-size:10px;font-weight:600;width:68px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gantt-track{flex:1;height:14px;background:var(--surface2);border-radius:3px;position:relative;overflow:hidden;}
+.gantt-bar{position:absolute;top:0;bottom:0;border-radius:3px;}
+.gantt-lbl{position:absolute;right:4px;top:0;bottom:0;display:flex;align-items:center;font-size:8px;font-weight:700;color:rgba(255,255,255,0.7);}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--surface2);border-radius:10px;padding:10px 12px;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.stat-val{font-size:19px;font-weight:800;}
+.stat-unit{font-size:10px;font-weight:400;color:var(--muted);}
+/* ── CONFIG ── */
+#sc-config{flex-direction:row;}
+#cfg-map-wrap{position:relative;flex:1;}
+#cfg-map{width:100%;height:100%;}
+#cfg-toolbar{position:absolute;top:12px;left:12px;z-index:400;display:none;gap:6px;}
+.mt-btn{background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);font-size:12px;font-weight:600;padding:8px 14px;border-radius:10px;cursor:pointer;backdrop-filter:blur(8px);white-space:nowrap;}
+.mt-btn.drawing{background:var(--orange);border-color:var(--orange);animation:pulse 1.2s infinite;}
+.mt-btn.c-green{background:var(--green);border-color:var(--green);}
+.mt-btn.c-red{color:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.7;}}
+#cfg-hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(17,17,19,0.9);color:#ccc;font-size:12px;padding:8px 18px;border-radius:20px;backdrop-filter:blur(8px);pointer-events:none;white-space:nowrap;}
+#cfg-sidebar{width:290px;background:var(--surface);border-left:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.cfg-head{padding:14px 14px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.cfg-tabs{display:flex;padding:8px 10px 0;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.cfg-tab{flex:1;text-align:center;padding:7px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;border-bottom:2px solid transparent;}
+.cfg-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.cfg-body{flex:1;overflow-y:auto;padding:10px;}
+.campo-card{background:var(--surface2);border-radius:11px;padding:11px 13px;margin-bottom:7px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+.campo-card:hover{background:var(--surface3);}
+.campo-card.active{border-color:var(--green);}
+.cc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.cc-nombre{font-size:13px;font-weight:700;}
+.cc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.cc-badge.propio{background:rgba(34,197,94,0.15);color:var(--green);}
+.cc-badge.arrend{background:rgba(245,158,11,0.15);color:var(--amber);}
+.cc-meta{font-size:11px;color:var(--muted);}
+.cc-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.cc-chip{font-size:10px;font-weight:600;padding:2px 7px;border-radius:7px;background:rgba(59,130,246,0.15);color:var(--blue);}
+.lote-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;margin-bottom:3px;cursor:pointer;border:0.5px solid transparent;transition:all .12s;}
+.lote-item:hover{background:var(--surface2);}
+.li-color{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.li-info{flex:1;min-width:0;}
+.li-nombre{font-size:12px;font-weight:600;}
+.li-sub{font-size:10px;color:var(--muted);}
+.li-del{background:var(--surface3);border:none;color:var(--muted);padding:3px 7px;border-radius:6px;font-size:11px;cursor:pointer;}
+.li-del:hover{color:var(--red);}
+/* ── HISTORIAL ── */
+#sc-historial{overflow-y:auto;padding:16px;}
+.hist-title{font-size:16px;font-weight:800;margin-bottom:14px;}
+.mov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:12px;}
+.mov-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.mov-info{flex:1;min-width:0;}
+.mov-titulo{font-size:13px;font-weight:700;}
+.mov-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.mov-fecha{font-size:11px;color:var(--muted);white-space:nowrap;}
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--surface);border-radius:18px;border:0.5px solid var(--border);width:100%;max-width:420px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6);}
+.modal-header{padding:16px 18px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:16px;font-weight:800;}
+.modal-close{background:var(--surface2);border:none;color:var(--muted);width:27px;height:27px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.modal-body{padding:16px 18px;}
+.modal-footer{padding:12px 18px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px;}
+/* ── FORMS ── */
+.f-group{margin-bottom:12px;}
+.f-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block;}
+.f-input,.f-select{width:100%;background:var(--surface2);color:var(--text);border:0.5px solid var(--surface3);border-radius:10px;padding:10px 12px;font-size:13px;outline:none;-webkit-appearance:none;}
+.f-input:focus,.f-select:focus{border-color:var(--blue);}
+.f-input::placeholder{color:var(--muted);}
+.f-row{display:flex;gap:10px;}.f-row .f-group{flex:1;}
+.f-ha{background:rgba(34,197,94,0.1);border:0.5px solid rgba(34,197,94,0.3);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--green);}
+.toggle-group{display:flex;gap:6px;}
+.toggle-opt{flex:1;text-align:center;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--muted);border:1.5px solid transparent;transition:all .12s;}
+.toggle-opt.sel-green{background:rgba(34,197,94,0.15);color:var(--green);border-color:var(--green);}
+.toggle-opt.sel-amber{background:rgba(245,158,11,0.15);color:var(--amber);border-color:var(--amber);}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.bs-chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--muted);border:1.5px solid transparent;transition:all .12s;}
+.bs-chip.s-blue{background:#1e3a5f;color:#93c5fd;border-color:var(--blue);}
+.bs-chip.s-green{background:#14532d;color:#86efac;border-color:var(--green);}
+.bs-chip.s-red{background:#7f1d1d;color:#fca5a5;border-color:var(--red);}
+.bs-chip.s-amber{background:#78350f;color:#fcd34d;border-color:var(--amber);}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-surface{background:var(--surface2);color:var(--text);border:0.5px solid var(--border);}
+.btn-sm{padding:6px 12px;font-size:12px;width:auto;}
+.confirm-btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;}
+.confirm-btn.green{background:var(--green);color:#fff;}
+.confirm-btn.red{background:var(--red);color:#fff;}
+.confirm-btn.blue{background:var(--blue);color:#fff;}
+#loading{position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.spinner{width:36px;height:36px;border:3px solid var(--surface3);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);z-index:3000;background:var(--green);color:#fff;font-size:13px;font-weight:700;padding:9px 22px;border-radius:20px;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.err{background:var(--red);}
+@media(max-width:700px){
+  /* ocultar elementos de escritorio */
+  #side-panel,#cfg-sidebar{display:none;}
+  #legend{display:none;}
 
-    <!-- CORRECCIÓN 1: URL completa de Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  /* topbar mobile */
+  #topbar{padding:0 10px;height:48px;}
+  .tb-logo{font-size:13px;}
+  .tb-navbtn{font-size:11px;padding:5px 8px;}
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1C1C1E; }
+  /* selector de campo — moverlo al topbar, ocultar en mapa */
+  #campo-sel-wrap{display:none !important;}
 
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+  /* FAM como bottom sheet en mobile */
+  #fam{
+    position:fixed !important;
+    left:0 !important; right:0 !important;
+    bottom:0 !important; top:auto !important;
+    min-width:unset !important; width:100% !important;
+    border-radius:20px 20px 0 0 !important;
+    max-height:80vh !important;
+    overflow-y:auto !important;
+    transform:translateY(100%) !important;
+    transition:transform .3s cubic-bezier(.32,.72,0,1) !important;
+    display:block !important;
+  }
+  #fam.open{transform:translateY(0) !important;}
+  #fam-header{padding:0 16px 12px;padding-right:44px;}
+  #fam-header::before{content:'';display:block;width:36px;height:4px;background:#3A3A3C;border-radius:2px;margin:12px auto 14px;}
+  #fam-close{top:14px;right:12px;}
+  #fam-nombre{font-size:18px;font-weight:800;}
+  #fam-info{font-size:14px;margin-top:3px;}
+  .fam-sect{font-size:11px;margin:12px 0 7px;}
+  .fam-btn{padding:13px 14px;font-size:14px;margin-bottom:7px;}
+  .fam-icon{width:32px;height:32px;font-size:16px;}
+  .fam-stats{font-size:13px;line-height:2.1;padding:0 2px;}
 
-        /* Panel superior */
-        .top-bar {
-            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(28,28,30,0.92); color: #fff;
-            padding: 8px 18px; border-radius: 20px;
-            font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
-            backdrop-filter: blur(8px); white-space: nowrap;
-        }
+  /* controles del mapa — barra inferior mobile */
+  #map-controls-mobile{display:flex !important;}
+  #map-hint{bottom:72px;}
 
-        /* Botones de capa */
-        .layer-control {
-            position: absolute; top: 12px; right: 12px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 6px;
-        }
-        .layer-btn {
-            background: rgba(28,28,30,0.92); color: #fff; border: none;
-            padding: 8px 14px; border-radius: 10px; font-size: 13px;
-            cursor: pointer; backdrop-filter: blur(8px); text-align: left;
-            transition: background 0.15s;
-        }
-        .layer-btn:hover { background: rgba(60,60,62,0.95); }
-        .layer-btn.active { background: #2563eb; }
+  /* bottom sheet formulario */
+  #bs{
+    max-height:92vh !important;
+    padding-bottom:40px !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  .bs-title{font-size:18px;}
+  .bs-sub{font-size:13px;margin-bottom:12px;}
+  .f-group{margin-bottom:10px;}
+  .f-input,.f-select{font-size:15px;padding:12px 14px;}
+  .f-label{font-size:12px;margin-bottom:4px;}
+  .chips-wrap{gap:7px;margin-bottom:10px;}
+  .bs-chip{font-size:13px;padding:8px 14px;}
+  .f-row{flex-direction:column;gap:0;}
+  .confirm-btn{padding:15px;font-size:16px;margin-top:8px;}
 
-        /* Leyenda */
-        .legend {
-            position: absolute; bottom: 24px; right: 12px; z-index: 1000;
-            background: rgba(28,28,30,0.90); color: #fff; border-radius: 12px;
-            padding: 12px 16px; font-size: 13px; backdrop-filter: blur(8px);
-            min-width: 160px;
-        }
-        .legend h4 { font-size: 12px; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-        .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
-
-        /* Info panel al hacer click */
-        .info-card {
-            position: absolute; bottom: 24px; left: 12px; z-index: 1000;
-            background: rgba(28,28,30,0.95); color: #fff; border-radius: 14px;
-            padding: 14px 18px; font-size: 13px; backdrop-filter: blur(8px);
-            min-width: 200px; display: none;
-        }
-        .info-card h3 { font-size: 15px; margin-bottom: 6px; }
-        .info-card p { color: #bbb; margin-bottom: 3px; }
-        .info-card .badge {
-            display: inline-block; padding: 2px 10px; border-radius: 10px;
-            font-size: 12px; font-weight: 600; margin-top: 4px;
-        }
-    </style>
+  /* chips del mapa más grandes en mobile */
+  .lote-chip{padding:8px 14px;min-width:100px;}
+  .chip-top{font-size:14px;}
+  .chip-bot{font-size:12px;}
+}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
+</style>
 </head>
 <body>
+<div id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Conectando…</div></div>
 
-<div class="top-bar">🌿 Gestión de Pastoreo — Cañada Negra</div>
-
-<div class="layer-control">
-    <button class="layer-btn active" onclick="setLayer('satellite', this)">🛰 Satélite</button>
-    <button class="layer-btn" onclick="setLayer('osm', this)">🗺 Callejero</button>
-    <button class="layer-btn" onclick="setLayer('topo', this)">⛰ Topográfico</button>
+<div id="topbar">
+  <div class="tb-logo">🌿 Pastoreo<span>App</span></div>
+  <div class="tb-nav">
+    <button class="tb-navbtn active" onclick="showScreen('pastoreo',this)">🗺 Pastoreo</button>
+    <button class="tb-navbtn" onclick="showScreen('config',this)">⚙ Config</button>
+    <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Historial</button>
+  </div>
+  <div class="tb-right"><div class="sync-dot" id="sync-dot"></div></div>
 </div>
 
-<div class="legend">
-    <h4>Cultivos</h4>
-    <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div> Alfalfa / Verdeo</div>
-    <div class="legend-item"><div class="legend-color" style="background:#f97316"></div> Sorgo / Cebada</div>
-    <div class="legend-item"><div class="legend-color" style="background:#22c55e"></div> Maíz</div>
-    <div class="legend-item"><div class="legend-color" style="background:#a855f7"></div> Otros</div>
+<!-- ══ PASTOREO ══ -->
+<div class="screen active" id="sc-pastoreo">
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div style="position:absolute;top:12px;left:12px;z-index:400;display:flex;gap:6px;align-items:center;" id="campo-sel-wrap">
+      <select id="campo-sel" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;padding:7px 12px;outline:none;cursor:pointer;backdrop-filter:blur(8px);-webkit-appearance:none;" onchange="cambiarCampo(this.value)"></select>
+      <button class="mt-btn" onclick="setLayer('satellite')">🛰</button>
+      <button class="mt-btn" onclick="setLayer('osm')">🗺</button>
+      <button class="mt-btn" id="panel-toggle-btn" onclick="togglePanel()">☰</button>
+    </div>
+    <!-- BARRA MOBILE INFERIOR -->
+    <div id="map-controls-mobile" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:400;background:rgba(17,17,19,0.94);border-top:0.5px solid var(--border);padding:10px 16px;gap:10px;align-items:center;backdrop-filter:blur(10px);">
+      <select id="campo-sel-mobile" style="flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-weight:600;padding:9px 12px;outline:none;-webkit-appearance:none;" onchange="cambiarCampo(this.value)"></select>
+      <button class="mt-btn" onclick="setLayer('satellite')" style="padding:9px 14px;">🛰</button>
+      <button class="mt-btn" onclick="setLayer('osm')" style="padding:9px 14px;">🗺</button>
+    </div>
+    <div id="fam">
+      <div id="fam-header">
+        <div id="fam-nombre">—</div><div id="fam-info">—</div>
+        <button id="fam-close" onclick="closeFam()">✕</button>
+      </div>
+      <div id="fam-body">
+        <div class="fam-sect">Acciones</div>
+        <button class="fam-btn" id="fam-ingresar" onclick="openBS('entrada')"><div class="fam-icon" style="background:#14532d">⬇</div><div><div>Ingresar animales</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rodeo o individual</div></div></button>
+        <button class="fam-btn" id="fam-retirar" onclick="openBS('salida')"><div class="fam-icon" style="background:#7f1d1d">⬆</div><div><div>Retirar animales</div><div style="font-size:11px;color:var(--muted);font-weight:400">Registrar salida</div></div></button>
+        <button class="fam-btn" id="fam-mover" onclick="openBS('mover')"><div class="fam-icon" style="background:#1e3a5f">↔</div><div><div>Mover a otro lote</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rotación directa</div></div></button>
+        <div class="fam-sect">Estado actual</div>
+        <div class="fam-stats" id="fam-stats">—</div>
+      </div>
+    </div>
+    <div id="bs">
+      <div class="bs-handle"></div>
+      <div class="bs-title" id="bs-titulo">—</div>
+      <div class="bs-sub" id="bs-sub">—</div>
+      <div id="bs-entrada" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha ingreso</label><input class="f-input" type="date" id="f-fecha-ent"></div>
+        <div class="f-label" style="margin-bottom:5px">Tipo</div>
+        <div class="chips-wrap" id="tipo-chips"><div class="bs-chip" onclick="selOne(this,'tipo-chips','s-blue')">👥 Rodeo</div><div class="bs-chip" onclick="selOne(this,'tipo-chips','s-blue')">🐄 Individual</div></div>
+        <div class="f-label" style="margin-bottom:5px">Categoría</div>
+        <div class="chips-wrap" id="cat-chips">
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐄 Vacas ordeñe</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐄 Vacas secas</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐮 Vaquillonas</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐂 Toros</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🍼 Terneras</div>
+        </div>
+        <div class="f-label" style="margin-bottom:5px">Estado reproductivo</div>
+        <div class="chips-wrap" id="estado-chips">
+          <div class="bs-chip" onclick="tog(this,'s-green')">Preñada</div><div class="bs-chip" onclick="tog(this,'s-red')">Vacía</div>
+          <div class="bs-chip" onclick="tog(this,'s-blue')">Inseminada</div><div class="bs-chip" onclick="tog(this,'s-blue')">IATF</div>
+          <div class="bs-chip" onclick="tog(this,'s-amber')">Seca</div><div class="bs-chip" onclick="tog(this,'s-amber')">Celo</div><div class="bs-chip" onclick="tog(this,'s-amber')">Anestro</div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Cantidad</label><input class="f-input" type="number" id="f-cant" placeholder="ej: 45" min="1"></div>
+          <div class="f-group"><label class="f-label">Parcela</label><select class="f-select" id="f-parcela"><option value="">Todo el lote</option><option>Parcela 1</option><option>Parcela 2</option><option>Parcela 3</option></select></div>
+        </div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-ent" placeholder="opcional…"></div>
+        <button class="confirm-btn green" onclick="confirmar('entrada')">✓ Confirmar ingreso</button>
+      </div>
+      <div id="bs-salida" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha retiro</label><input class="f-input" type="date" id="f-fecha-sal"></div>
+        <div class="f-group"><label class="f-label">Motivo</label><select class="f-select" id="f-motivo"><option>Rotación programada</option><option>Descanso</option><option>Manejo sanitario</option><option>Otro</option></select></div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-sal" placeholder="opcional…"></div>
+        <button class="confirm-btn red" onclick="confirmar('salida')">✓ Confirmar retiro</button>
+      </div>
+      <div id="bs-mover" style="display:none">
+        <div class="f-group"><label class="f-label">Mover a lote</label><select class="f-select" id="f-destino"></select></div>
+        <div class="f-group"><label class="f-label">Fecha</label><input class="f-input" type="date" id="f-fecha-mov"></div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-mov" placeholder="opcional…"></div>
+        <button class="confirm-btn blue" onclick="confirmar('mover')">↔ Confirmar movimiento</button>
+      </div>
+    </div>
+    <div id="legend"><h4>Estado lotes</h4><div class="leg-row"><div class="leg-dot" style="background:var(--green)"></div>Con animales</div><div class="leg-row"><div class="leg-dot" style="background:var(--amber)"></div>Descansando</div><div class="leg-row"><div class="leg-dot" style="background:var(--blue)"></div>Libre</div><div class="leg-row"><div class="leg-dot" style="background:var(--purple)"></div>Reservado</div></div>
+    <div class="map-hint" id="map-hint">Tocá un lote para registrar movimiento</div>
+  </div>
+  <div id="side-panel">
+    <div class="sp-header">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="sp-campo-lbl">Campo</div>
+      <div class="sp-tabs">
+        <button class="sp-tab active" onclick="switchSpTab('lista',this)">Lista</button>
+        <button class="sp-tab" onclick="switchSpTab('gantt',this)">Gantt</button>
+        <button class="sp-tab" onclick="switchSpTab('resumen',this)">Resumen</button>
+      </div>
+    </div>
+    <div class="sp-body" id="sp-body"></div>
+  </div>
 </div>
 
-<div class="info-card" id="info-card">
-    <h3 id="info-nombre">—</h3>
-    <p id="info-cultivo">—</p>
-    <p id="info-ha">—</p>
-    <span class="badge" id="info-badge">—</span>
+<!-- ══ CONFIG ══ -->
+<div class="screen" id="sc-config">
+  <div id="cfg-map-wrap">
+    <div id="cfg-map"></div>
+    <div id="cfg-toolbar">
+      <div class="mt-btn drawing">✏ Dibujando…</div>
+      <button class="mt-btn" onclick="undoPoint()">↩ Deshacer</button>
+      <button class="mt-btn c-green" onclick="finishDraw()">✓ Cerrar</button>
+      <button class="mt-btn c-red" onclick="cancelDraw()">✕ Cancelar</button>
+    </div>
+    <div id="cfg-hint">Seleccioná un campo y presioná "Nuevo lote"</div>
+  </div>
+  <div id="cfg-sidebar">
+    <div class="cfg-head"><div style="font-size:14px;font-weight:700">Configuración</div><button class="btn btn-green btn-sm" onclick="openModalCampo()">+ Campo</button></div>
+    <div class="cfg-tabs">
+      <button class="cfg-tab active" id="cfg-tab-c" onclick="switchCfgTab('campos',this)">Campos</button>
+      <button class="cfg-tab" id="cfg-tab-l" onclick="switchCfgTab('lotes',this)">Lotes</button>
+    </div>
+    <div class="cfg-body" id="cfg-body"></div>
+  </div>
 </div>
 
-<div id="map"></div>
+<!-- ══ HISTORIAL ══ -->
+<div class="screen" id="sc-historial">
+  <div class="hist-title">📋 Historial de movimientos</div>
+  <div id="hist-body"></div>
+</div>
 
-<!-- CORRECCIÓN 2: URL completa de Leaflet JS -->
+<!-- MODAL CAMPO -->
+<div class="modal-overlay" id="modal-campo" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nuevo campo</div><button class="modal-close" onclick="closeModal('modal-campo')">✕</button></div>
+    <div class="modal-body">
+      <div class="f-group"><label class="f-label">Nombre *</label><input class="f-input" id="c-nombre" placeholder="ej: Cañada Negra"></div>
+      <div class="f-group"><label class="f-label">Ubicación</label><input class="f-input" id="c-ubicacion" placeholder="ej: Villa María, Córdoba"></div>
+      <div class="f-group"><label class="f-label">Propietario</label><input class="f-input" id="c-propietario" placeholder="Nombre del propietario"></div>
+      <div class="f-group"><label class="f-label">Tenencia</label><div class="toggle-group"><div class="toggle-opt sel-green" id="c-ten-p" onclick="selTen('campo','propio')">✓ Propio</div><div class="toggle-opt" id="c-ten-a" onclick="selTen('campo','arrendado')">Arrendado</div></div></div>
+      <div class="f-group" id="c-precio-wrap" style="display:none"><label class="f-label">Precio ($/ha/año)</label><input class="f-input" id="c-precio" type="number" placeholder="ej: 350"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-surface" onclick="closeModal('modal-campo')">Cancelar</button><button class="btn btn-green" onclick="guardarCampo()">Guardar campo</button></div>
+  </div>
+</div>
+
+<!-- MODAL LOTE -->
+<div class="modal-overlay" id="modal-lote" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Datos del lote</div><button class="modal-close" onclick="cancelarLote()">✕</button></div>
+    <div class="modal-body">
+      <div class="f-group"><label class="f-label">Superficie calculada</label><div class="f-ha" id="l-ha-display">— ha</div></div>
+      <div class="f-group"><label class="f-label">Nombre *</label><input class="f-input" id="l-nombre" placeholder="ej: Potrero Norte…"></div>
+      <div class="f-group"><label class="f-label">Cultivo actual</label><select class="f-select" id="l-cultivo"><option value="">Sin cultivo</option><option>Alfalfa</option><option>Alfalfa/verdeo</option><option>Maíz</option><option>Sorgo</option><option>Cebada</option><option>Soja</option><option>Trigo</option><option>Pastura natural</option><option>Otro</option></select></div>
+      <div class="f-group"><label class="f-label">Tenencia</label><div class="toggle-group"><div class="toggle-opt sel-green" id="l-ten-p" onclick="selTen('lote','propio')">✓ Propio</div><div class="toggle-opt" id="l-ten-a" onclick="selTen('lote','arrendado')">Arrendado</div></div></div>
+      <div class="f-group"><label class="f-label">Propietario del lote</label><input class="f-input" id="l-propietario" placeholder="Si es distinto al campo"></div>
+      <div class="f-group" id="l-precio-wrap" style="display:none"><label class="f-label">Precio arrendamiento ($/ha/año)</label><input class="f-input" id="l-precio" type="number" placeholder="ej: 350"></div>
+      
+    </div>
+    <div class="modal-footer"><button class="btn btn-surface" onclick="cancelarLote()">Cancelar</button><button class="btn btn-green" onclick="guardarLote()">Guardar lote</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-<script>
-// CORRECCIÓN 3: GeoJSON embebido directamente (evita problemas de fetch/CORS en GitHub Pages)
-// El archivo lotes_tambo.geojson tenía nombre con espacios — acá va incrustado
-const GEOJSON_LOTES = {"type":"FeatureCollection","name":"lotes de tambo","features":[{"type":"Feature","properties":{"Name":"A2 31 ha"},"geometry":{"type":"Point","coordinates":[-63.4735423,-33.0026298]}},{"type":"Feature","properties":{"Name":"A2 alfa/verdeo ancho"},"geometry":{"type":"Polygon","coordinates":[[[-63.4699291,-33.0001203],[-63.4751928,-32.9990439],[-63.4759431,-33.0019174],[-63.4751459,-33.0021818],[-63.4753154,-33.0027864],[-63.4756191,-33.0028713],[-63.4762264,-33.0050056],[-63.4714964,-33.0058888],[-63.4699291,-33.0001203]]]}},{"type":"Feature","properties":{"Name":"C1 31 ha"},"geometry":{"type":"Point","coordinates":[-63.466467,-33.0040094]}},{"type":"Feature","properties":{"Name":"C1 cebada baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4714381,-33.0059596],[-63.4647053,-33.0071578],[-63.4637052,-33.0032671],[-63.4639054,-33.0028721],[-63.4701876,-33.0016106],[-63.4714381,-33.0059596]]]}},{"type":"Feature","properties":{"Name":"C2 22 ha"},"geometry":{"type":"Point","coordinates":[-63.4622715,-33.005342]}},{"type":"Feature","properties":{"Name":"C2 sorgo/alfa baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4646791,-33.0071784],[-63.4599125,-33.008065],[-63.4588861,-33.0037786],[-63.4633262,-33.002972],[-63.4636878,-33.0032658],[-63.4646791,-33.0071784]]]}},{"type":"Feature","properties":{"Name":"C3 33 ha"},"geometry":{"type":"Point","coordinates":[-63.4661699,-33.0008577]}},{"type":"Feature","properties":{"Name":"C3 alfa baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4638922,-33.0028724],[-63.4634974,-33.002692],[-63.4620599,-32.9967888],[-63.4642862,-32.9963743],[-63.4655326,-32.9975933],[-63.4658534,-32.9989138],[-63.469431,-32.9982001],[-63.4703178,-33.0015643],[-63.4638922,-33.0028724]]]}},{"type":"Feature","properties":{"Name":"C4 45 ha"},"geometry":{"type":"Point","coordinates":[-63.4609756,-33.0006048]}},{"type":"Feature","properties":{"Name":"C4 cebada baru"},"geometry":{"type":"Polygon","coordinates":[[[-63.4635171,-33.0026689],[-63.4632525,-33.0029342],[-63.4578335,-33.0039237],[-63.4573677,-33.0022584],[-63.4558496,-33.0024977],[-63.4547421,-32.9981138],[-63.4620209,-32.9967933],[-63.4635171,-33.0026689]]]}},{"type":"Feature","properties":{"Name":"C5 34 ha"},"geometry":{"type":"Point","coordinates":[-63.4523713,-33.0085375]}},{"type":"Feature","properties":{"Name":"C5 alfa"},"geometry":{"type":"Polygon","coordinates":[[[-63.4547284,-33.0045439],[-63.4561181,-33.008881],[-63.4487319,-33.0103068],[-63.447742,-33.0060082],[-63.4547284,-33.0045439]]]}},{"type":"Feature","properties":{"Name":"L1 34 ha"},"geometry":{"type":"Point","coordinates":[-63.4802262,-33.014737]}},{"type":"Feature","properties":{"Name":"L1 maiz latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4865391,-33.0141363],[-63.4673676,-33.0176911],[-63.4669266,-33.0160403],[-63.486988,-33.0124252],[-63.4865391,-33.0141363]]]}},{"type":"Feature","properties":{"Name":"L2 17 ha"},"geometry":{"type":"Point","coordinates":[-63.4635829,-33.017664]}},{"type":"Feature","properties":{"Name":"L2 maiz latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4580033,-33.0194698],[-63.4575004,-33.017704],[-63.4669319,-33.0160438],[-63.4674214,-33.0177331],[-63.4580033,-33.0194698]]]}},{"type":"Feature","properties":{"Name":"L3 10 ha"},"geometry":{"type":"Point","coordinates":[-63.4559918,-33.0188455]}},{"type":"Feature","properties":{"Name":"L3 sorgo latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4528989,-33.0204513],[-63.4523747,-33.0187036],[-63.4573793,-33.0177025],[-63.4579254,-33.0194486],[-63.4528989,-33.0204513]]]}},{"type":"Feature","properties":{"Name":"L5 27 ha"},"geometry":{"type":"Point","coordinates":[-63.455105,-33.0110087]}},{"type":"Feature","properties":{"Name":"L5 alfa latorre"},"geometry":{"type":"Polygon","coordinates":[[[-63.4580765,-33.0121796],[-63.4508659,-33.0135546],[-63.4498988,-33.010095],[-63.4571555,-33.0086868],[-63.4580765,-33.0121796]]]}}]};
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyAKHgelHox51MvVKnAVZrxkPu2rq017jsA",
+  authDomain:"pastoreo-app.firebaseapp.com",
+  projectId:"pastoreo-app",
+  storageBucket:"pastoreo-app.firebasestorage.app",
+  messagingSenderId:"898440701678",
+  appId:"1:898440701678:web:ba0ced9b53f4a2ab03b5ff"
+}));
 
-// Función para determinar color según el cultivo
-function getColor(name) {
-    const n = (name || '').toLowerCase();
-    if (n.includes('alfa') || n.includes('verdeo')) return '#3b82f6';
-    if (n.includes('sorgo') || n.includes('cebada')) return '#f97316';
-    if (n.includes('maiz') || n.includes('maíz')) return '#22c55e';
-    return '#a855f7';
-}
+let campos=[], lotes=[], movimientos=[];
+let campoActivoId=null, loteSelId=null, spTab='lista', cfgTab='campos';
+let tenenciaCampo='propio', tenenciaLote='propio', loteColor='#3b82f6', panelOpen=true;
+let drawing=false, drawPts=[], drawMarkers=[], drawPolyline=null, drawPolygon=null, pendingCoords=null;
 
-function getBadgeStyle(name) {
-    const n = (name || '').toLowerCase();
-    if (n.includes('alfa') || n.includes('verdeo')) return 'background:#1d4ed8;color:#bfdbfe';
-    if (n.includes('sorgo') || n.includes('cebada')) return 'background:#c2410c;color:#fed7aa';
-    if (n.includes('maiz') || n.includes('maíz')) return 'background:#15803d;color:#bbf7d0';
-    return 'background:#7e22ce;color:#e9d5ff';
-}
+const COLORS=['#3b82f6','#22c55e','#f97316','#f59e0b','#a855f7','#ef4444','#14b8a6','#ec4899'];
+const EC={ocupado:'#22c55e',descanso:'#f59e0b',libre:'#3b82f6',reservado:'#a855f7'};
+const EL={ocupado:'Con animales',descanso:'Descansando',libre:'Libre',reservado:'Reservado'};
 
-// Tiles disponibles
-const tileLayers = {
-    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, AeroGRID, IGN',
-        maxZoom: 19
-    }),
-    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
-    }),
-    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenTopoMap',
-        maxZoom: 17
-    })
+// MAPS
+const pastMap=L.map('map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
+const cfgMap =L.map('cfg-map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
+const mkSat=()=>L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+const mkOSM=()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+let pastTile=mkSat(); pastTile.addTo(pastMap);
+mkSat().addTo(cfgMap);
+pastMap.on('click',()=>closeFam());
+cfgMap.on('click',e=>{ if(drawing) addPoint(e.latlng); });
+cfgMap.on('dblclick',e=>{ if(drawing&&drawPts.length>=3){L.DomEvent.stopPropagation(e);finishDraw();} });
+
+let pastLayers={}, chipMarkers={}, cfgLayers={};
+
+function sync(s){ const d=document.getElementById('sync-dot'); d.className='sync-dot'+(s==='syncing'?' syncing':s==='err'?' err':''); }
+
+onSnapshot(collection(db,'campos'),snap=>{
+  campos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(!campoActivoId&&campos.length) campoActivoId=campos[0].id;
+  renderCampoSel(); renderCfgBody(); renderPanel();
+});
+onSnapshot(collection(db,'lotes'),snap=>{
+  lotes=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderMapLotes(); renderCfgMapLotes(); renderCfgBody(); renderPanel();
+  document.getElementById('loading').style.display='none';
+});
+onSnapshot(collection(db,'movimientos'),snap=>{
+  movimientos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderMapLotes(); renderPanel(); renderHistorial();
+});
+
+// NAVIGATION
+window.showScreen=(name,btn)=>{
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-'+name).classList.add('active');
+  document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(name==='pastoreo') setTimeout(()=>pastMap.invalidateSize(),50);
+  if(name==='config')   setTimeout(()=>cfgMap.invalidateSize(),50);
 };
 
-// CORRECCIÓN 4: coordenadas correctas del campo
-const map = L.map('map').setView([-33.005, -63.463], 14);
-let currentTile = tileLayers.satellite;
-currentTile.addTo(map);
+function renderCampoSel(){
+  const html=campos.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  const s=document.getElementById('campo-sel');
+  s.innerHTML=html; if(campoActivoId) s.value=campoActivoId;
+  const sm=document.getElementById('campo-sel-mobile');
+  if(sm){ sm.innerHTML=html; if(campoActivoId) sm.value=campoActivoId; }
+}
+window.cambiarCampo=id=>{
+  campoActivoId=id;
+  const s=document.getElementById('campo-sel'); if(s) s.value=id;
+  const sm=document.getElementById('campo-sel-mobile'); if(sm) sm.value=id;
+  renderMapLotes(); renderPanel();
+};
+window.setLayer=name=>{ pastMap.removeLayer(pastTile); pastTile=name==='satellite'?mkSat():mkOSM(); pastTile.addTo(pastMap); };
+window.togglePanel=()=>{ panelOpen=!panelOpen; document.getElementById('side-panel').classList.toggle('collapsed',!panelOpen); setTimeout(()=>pastMap.invalidateSize(),260); };
 
-function setLayer(name, btn) {
-    map.removeLayer(currentTile);
-    currentTile = tileLayers[name];
-    currentTile.addTo(map);
-    document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+// PASTOREO MAP
+function renderMapLotes(){
+  Object.values(pastLayers).forEach(l=>{ try{pastMap.removeLayer(l);}catch(e){} });
+  Object.values(chipMarkers).forEach(m=>{ try{pastMap.removeLayer(m);}catch(e){} });
+  pastLayers={}; chipMarkers={};
+  const cl=lotes.filter(l=>l.campoId===campoActivoId);
+  document.getElementById('sp-campo-lbl').textContent=campos.find(c=>c.id===campoActivoId)?.nombre||'Campo';
+  const dest=document.getElementById('f-destino');
+  if(dest) dest.innerHTML=cl.map(l=>`<option value="${l.id}">${l.nombre}</option>`).join('');
+  const bounds=[];
+  cl.forEach(lote=>{
+    if(!lote.coords?.length) return;
+    const coords=lote.coords.map(c=>Array.isArray(c)?c:[c.lat,c.lng]);
+    bounds.push(...coords);
+    const estado=lote.estado||'libre', color=EC[estado], isDes=estado==='descanso';
+    const poly=L.polygon(coords,{color:'rgba(255,255,255,0.5)',weight:1.5,fillColor:color,fillOpacity:isDes?0.22:0.4,dashArray:isDes?'6,5':null}).addTo(pastMap);
+    poly.on('mouseover',()=>poly.setStyle({fillOpacity:isDes?0.4:0.62,weight:2.5}));
+    poly.on('mouseout', ()=>poly.setStyle({fillOpacity:isDes?0.22:0.4,weight:1.5}));
+    poly.on('click',e=>{ L.DomEvent.stopPropagation(e); selectLote(lote.id); });
+    pastLayers[lote.id]=poly;
+    const center=poly.getBounds().getCenter();
+    const mov=lastMov(lote.id);
+    let bt='Libre',bc='blue';
+    if(estado==='ocupado'&&mov){ const d=dDias(mov.fecha); bt=`${mov.cantidad||'?'}cab·${d}d`; bc=d>10?'red':d>6?'amber':'green'; }
+    else if(estado==='descanso'&&mov){ bt=`Desc ${dDias(mov.fecha)}d`; bc='amber'; }
+    else if(estado==='reservado'){ bt='Reservado'; }
+    const m=L.marker(center,{icon:L.divIcon({className:'',html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')"><div class="chip-top">${lote.nombre}·${lote.ha}ha</div><div class="chip-bot ${bc}">${bt}</div></div>`,iconAnchor:[0,0]}),interactive:false}).addTo(pastMap);
+    chipMarkers[lote.id]=m;
+  });
+  if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60]});
+}
+window._cc=id=>selectLote(id);
+
+function selectLote(id){
+  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
+  loteSelId=id;
+  const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  const poly=pastLayers[id];
+  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.flyToBounds(poly.getBounds(),{padding:[80,80],duration:0.55,maxZoom:17}); }
+  const estado=lote.estado||'libre', color=EC[estado];
+  document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
+  document.getElementById('fam-info').innerHTML=`${lote.cultivo||'Sin cultivo'} · <span style="color:${color}">${EL[estado]}</span>`;
+  const mov=lastMov(id);
+  let st=`<div>Cultivo: <b>${lote.cultivo||'—'}</b></div>`;
+  if(estado==='ocupado'&&mov){ st+=`<div>Animales: <b style="color:var(--green)">${mov.cantidad} cab</b></div><div>Categoría: <b>${mov.categoria||'—'}</b></div>${mov.estadoRepro?`<div>Repro: <b>${mov.estadoRepro}</b></div>`:''}<div>Días en lote: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div><div>Carga: <b>${(mov.cantidad/lote.ha).toFixed(1)} cab/ha</b></div>`; }
+  else if(estado==='descanso'&&mov){ st+=`<div>Días desc: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`; }
+  else { st+=`<div style="color:var(--muted)">Sin animales</div>`; }
+  document.getElementById('fam-stats').innerHTML=st;
+  document.getElementById('fam-retirar').disabled=estado!=='ocupado';
+  document.getElementById('fam-mover').disabled=estado!=='ocupado';
+  const fam=document.getElementById('fam');
+  if(window.innerWidth>700){
+    fam.style.left='12px'; fam.style.bottom='16px'; fam.style.top='auto';
+  }
+  fam.classList.add('open');
+  document.getElementById('map-hint').style.opacity='0';
+  renderPanel();
+  document.querySelectorAll('.lr').forEach(r=>r.classList.toggle('sel',r.dataset.id===id));
+}
+window.closeFam=()=>{
+  document.getElementById('fam').classList.remove('open');
+  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
+  loteSelId=null; document.getElementById('map-hint').style.opacity='1'; renderPanel();
+};
+
+// BOTTOM SHEET
+window.openBS=tipo=>{
+  ['entrada','salida','mover'].forEach(t=>document.getElementById('bs-'+t).style.display='none');
+  document.getElementById('bs-'+tipo).style.display='block';
+  const lote=lotes.find(l=>l.id===loteSelId);
+  document.getElementById('bs-titulo').textContent={entrada:'Ingresar animales',salida:'Retirar animales',mover:'Mover a otro lote'}[tipo];
+  document.getElementById('bs-sub').textContent=lote?`${lote.nombre} · ${lote.ha} ha · ${lote.cultivo||''}`:'';
+  // Reset todos los chips del formulario
+  document.querySelectorAll('#tipo-chips .bs-chip, #cat-chips .bs-chip, #estado-chips .bs-chip').forEach(c=>c.className='bs-chip');
+  document.getElementById('f-cant').value='';
+  document.getElementById('f-obs-ent').value='';
+  document.getElementById('bs').classList.add('open');
+  document.getElementById('fam').classList.remove('open');
+};
+
+window.confirmar=async tipo=>{
+  const lote=lotes.find(l=>l.id===loteSelId);
+  if(!lote){ showToast('No hay lote seleccionado',true); return; }
+  sync('syncing');
+  const today=new Date().toISOString().split('T')[0];
+  try{
+    if(tipo==='entrada'){
+      const cant=document.getElementById('f-cant').value;
+      if(!cant){ showToast('Ingresá la cantidad',true); sync('ok'); return; }
+      const catEl=document.querySelector('#cat-chips .bs-chip.s-blue');
+      const estados=[...document.querySelectorAll('#estado-chips .bs-chip')].filter(c=>c.className.includes('s-')).map(c=>c.textContent.trim());
+      // Sumar a los animales existentes
+      const movAnterior=lastMov(lote.id);
+      const cantAnterior=(lote.estado==='ocupado'&&movAnterior)?Number(movAnterior.cantidad)||0:0;
+      const cantTotal=cantAnterior+Number(cant);
+      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'entrada',fecha:document.getElementById('f-fecha-ent').value||today,cantidad:cantTotal,cantidadAgregada:Number(cant),categoria:catEl?catEl.textContent.trim():'',estadoRepro:estados.join(', '),parcela:document.getElementById('f-parcela').value,obs:document.getElementById('f-obs-ent').value,creadoEn:new Date().toISOString()});
+      await updateDoc(doc(db,'lotes',lote.id),{estado:'ocupado'});
+      showToast(`✓ +${cant} animales → total ${cantTotal} en ${lote.nombre}`);
+    } else if(tipo==='salida'){
+      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'salida',fecha:document.getElementById('f-fecha-sal').value||today,motivo:document.getElementById('f-motivo').value,obs:document.getElementById('f-obs-sal').value,creadoEn:new Date().toISOString()});
+      await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso'});
+      showToast(`✓ Retiro registrado en ${lote.nombre}`);
+    } else {
+      const destId=document.getElementById('f-destino').value;
+      const destLote=lotes.find(l=>l.id===destId);
+      const mov=lastMov(lote.id);
+      const fecha=document.getElementById('f-fecha-mov').value||today;
+      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'salida',fecha,motivo:'Rotación → '+(destLote?.nombre||''),obs:document.getElementById('f-obs-mov').value,creadoEn:new Date().toISOString()});
+      await addDoc(collection(db,'movimientos'),{loteId:destId,campoId:campoActivoId,tipo:'entrada',fecha,cantidad:mov?.cantidad||0,categoria:mov?.categoria||'',estadoRepro:mov?.estadoRepro||'',obs:`Movido desde ${lote.nombre}`,creadoEn:new Date().toISOString()});
+      await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso'});
+      await updateDoc(doc(db,'lotes',destId),{estado:'ocupado'});
+      showToast(`↔ Movido → ${destLote?.nombre}`);
+    }
+    sync('ok'); document.getElementById('bs').classList.remove('open');
+  } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
+};
+
+// PANEL LATERAL
+window.switchSpTab=(tab,el)=>{ spTab=tab; document.querySelectorAll('.sp-tab').forEach(t=>t.classList.remove('active')); if(el)el.classList.add('active'); renderPanel(); };
+function renderPanel(){ spTab==='lista'?renderLista():spTab==='gantt'?renderGantt():renderResumen(); }
+
+function renderLista(){
+  const cl=lotes.filter(l=>l.campoId===campoActivoId), body=document.getElementById('sp-body');
+  if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:32px 12px;color:var(--muted);font-size:12px">No hay lotes.<br>Creálos en ⚙ Config.</div>`; return; }
+  body.innerHTML=cl.map(l=>{
+    const estado=l.estado||'libre',color=EC[estado],mov=lastMov(l.id);
+    let badge=estado==='ocupado'&&mov?`<span class="lr-badge" style="background:rgba(34,197,94,.15);color:var(--green)">${mov.cantidad}cab</span>`:estado==='descanso'?`<span class="lr-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">${dDias(mov?.fecha||'')}d</span>`:`<span class="lr-badge" style="background:rgba(59,130,246,.15);color:var(--blue)">Libre</span>`;
+    return `<div class="lr${loteSelId===l.id?' sel':''}" data-id="${l.id}" onclick="selectLote('${l.id}')"><div class="lr-dot" style="background:${color}"></div><div class="lr-info"><div class="lr-nombre">${l.nombre}</div><div class="lr-sub">${l.ha}ha·${l.cultivo||'—'}</div></div>${badge}</div>`;
+  }).join('');
+}
+function renderGantt(){
+  const cl=lotes.filter(l=>l.campoId===campoActivoId);
+  document.getElementById('sp-body').innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-align:right">← 30 días</div>`+cl.map(l=>{ const mov=lastMov(l.id),color=EC[l.estado||'libre'],dias=mov?Math.min(dDias(mov.fecha),30):0,pct=Math.round((dias/30)*100); return `<div class="gantt-row"><div class="gantt-name" title="${l.nombre}">${l.nombre}</div><div class="gantt-track">${dias>0?`<div class="gantt-bar" style="left:${100-pct}%;width:${pct}%;background:${color};opacity:.85"></div><div class="gantt-lbl">${dias}d</div>`:''}</div></div>`; }).join('');
+}
+function renderResumen(){
+  const cl=lotes.filter(l=>l.campoId===campoActivoId),ocup=cl.filter(l=>l.estado==='ocupado');
+  const tA=ocup.reduce((s,l)=>{ const m=lastMov(l.id); return s+(m?.cantidad||0); },0);
+  const hA=ocup.reduce((s,l)=>s+Number(l.ha||0),0);
+  document.getElementById('sp-body').innerHTML=`<div class="stat-grid">${sc('Animales',tA,'cab','var(--green)')}${sc('Lotes ocup.',ocup.length,'/'+cl.length,'var(--blue)')}${sc('Ha en uso',hA.toFixed(0),'ha','var(--amber)')}${sc('Carga',hA>0?(tA/hA).toFixed(1):0,'cab/ha','var(--purple)')}</div>${ocup.map(l=>{ const m=lastMov(l.id); return `<div style="background:var(--surface2);border-radius:9px;padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between"><b style="font-size:12px">${l.nombre}·${l.ha}ha</b><span style="color:var(--green);font-size:11px;font-weight:700">${m?.cantidad||0}cab</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m?.categoria||'—'}·${m?.estadoRepro||'—'}·${dDias(m?.fecha||'')}d</div></div>`; }).join('')}`;
+}
+function sc(l,v,u,c){ return `<div class="stat-card"><div class="stat-lbl">${l}</div><div class="stat-val" style="color:${c}">${v}<span class="stat-unit"> ${u}</span></div></div>`; }
+
+// CONFIG
+window.switchCfgTab=(tab,el)=>{ cfgTab=tab; document.querySelectorAll('.cfg-tab').forEach(t=>t.classList.remove('active')); if(el)el.classList.add('active'); renderCfgBody(); };
+function renderCfgBody(){ cfgTab==='campos'?renderCfgCampos():renderCfgLotes(); }
+
+function renderCfgCampos(){
+  const body=document.getElementById('cfg-body');
+  if(!campos.length){ body.innerHTML=`<div style="text-align:center;padding:32px 12px;color:var(--muted);font-size:12px">No hay campos.<br>Creá el primero arriba.</div>`; return; }
+  body.innerHTML=campos.map(c=>{ const cl=lotes.filter(l=>l.campoId===c.id); return `<div class="campo-card${c.id===campoActivoId?' active':''}" onclick="selCfgCampo('${c.id}')"><div class="cc-header"><div class="cc-nombre">${c.nombre}</div><span class="cc-badge ${c.tenencia==='propio'?'propio':'arrend'}">${c.tenencia==='propio'?'Propio':'Arrendado'}</span></div><div class="cc-meta">${c.ubicacion||'Sin ubicación'}·${c.propietario||'Sin propietario'}</div><div class="cc-chips">${cl.length?cl.map(l=>`<span class="cc-chip">${l.nombre}</span>`).join(''):'<span style="font-size:10px;color:var(--muted)">Sin lotes</span>'}</div>${c.id===campoActivoId?`<div style="margin-top:9px"><button class="btn btn-blue btn-sm" onclick="event.stopPropagation();startDraw()">+ Nuevo lote</button></div>`:''}</div>`; }).join('');
+}
+function renderCfgLotes(){
+  const body=document.getElementById('cfg-body');
+  const campo=campos.find(c=>c.id===campoActivoId);
+  if(!campo){ body.innerHTML=`<div style="text-align:center;padding:32px 12px;color:var(--muted);font-size:12px">Seleccioná un campo primero.</div>`; return; }
+  const cl=lotes.filter(l=>l.campoId===campoActivoId);
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Campo: <b style="color:var(--text)">${campo.nombre}</b></div>`;
+  if(!cl.length) html+=`<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px">No hay lotes aún.</div>`;
+  else html+=cl.map(l=>`<div class="lote-item"><div class="li-color" style="background:${EC[l.estado||'libre']||'#3b82f6'}"></div><div class="li-info"><div class="li-nombre">${l.nombre}</div><div class="li-sub">${l.ha}ha·${l.cultivo||'Sin cultivo'}·${l.tenencia}</div></div><button class="li-del" onclick="eliminarLote('${l.id}')">✕</button></div>`).join('');
+  html+=`<div style="margin-top:10px"><button class="btn btn-blue" onclick="startDraw()">+ Nuevo lote en ${campo.nombre}</button></div>`;
+  body.innerHTML=html;
+}
+window.selCfgCampo=id=>{ campoActivoId=id; renderCfgCampos(); renderCfgMapLotes(); };
+
+function renderCfgMapLotes(){
+  Object.values(cfgLayers).forEach(l=>{ try{cfgMap.removeLayer(l);}catch(e){} }); cfgLayers={};
+  const cl=lotes.filter(l=>l.campoId===campoActivoId);
+  const bounds=[];
+  cl.forEach(lote=>{
+    if(!lote.coords?.length) return;
+    const coords=lote.coords.map(c=>Array.isArray(c)?c:[c.lat,c.lng]);
+    bounds.push(...coords);
+    const poly=L.polygon(coords,{color:'rgba(255,255,255,0.5)',weight:1.5,fillColor:EC[lote.estado||'libre']||'#3b82f6',fillOpacity:0.35}).addTo(cfgMap);
+    const center=poly.getBounds().getCenter();
+    L.marker(center,{icon:L.divIcon({className:'',html:`<div style="background:rgba(0,0,0,0.72);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;transform:translateX(-50%);border:1px solid rgba(255,255,255,0.18)">${lote.nombre}·${lote.ha}ha</div>`,iconAnchor:[0,0]})}).addTo(cfgMap);
+    cfgLayers[lote.id]=poly;
+  });
+  if(bounds.length) cfgMap.fitBounds(bounds,{padding:[40,40]});
 }
 
-// Etiquetas de referencia (puntos con superficie)
-const labels = {};
-GEOJSON_LOTES.features
-    .filter(f => f.geometry.type === 'Point')
-    .forEach(f => {
-        const key = f.properties.Name.split(' ')[0];
-        labels[key] = f.properties.Name;
-    });
-
-// Dibujar polígonos
-const bounds = [];
-GEOJSON_LOTES.features
-    .filter(f => f.geometry.type === 'Polygon')
-    .forEach(feature => {
-        const name = feature.properties.Name;
-        const color = getColor(name);
-        const coords2d = feature.geometry.coordinates[0].map(c => [c[1], c[0]]);
-        bounds.push(...coords2d);
-
-        const poly = L.polygon(coords2d, {
-            color: 'rgba(255,255,255,0.7)',
-            weight: 1.5,
-            fillColor: color,
-            fillOpacity: 0.4
-        });
-
-        // Etiqueta sobre el lote
-        const center = poly.getBounds().getCenter();
-        const loteKey = name.split(' ')[0];
-        const labelText = labels[loteKey] || name;
-        const cultivar = name.replace(/^[A-Z]\d+ /, '').replace(' baru', '').replace(' latorre', '');
-
-        L.marker(center, {
-            icon: L.divIcon({
-                className: '',
-                html: `<div style="
-                    background:rgba(0,0,0,0.65);color:#fff;
-                    font-size:11px;font-weight:700;
-                    padding:3px 7px;border-radius:6px;
-                    white-space:nowrap;font-family:system-ui,sans-serif;
-                    border:1px solid rgba(255,255,255,0.25);
-                    transform:translateX(-50%);
-                ">${labelText}</div>`,
-                iconAnchor: [0, 0]
-            })
-        }).addTo(map);
-
-        // Hover
-        poly.on('mouseover', function() {
-            this.setStyle({ fillOpacity: 0.65, weight: 2.5 });
-        });
-        poly.on('mouseout', function() {
-            this.setStyle({ fillOpacity: 0.4, weight: 1.5 });
-        });
-
-        // Click → panel de info
-        poly.on('click', function() {
-            const card = document.getElementById('info-card');
-            const haMatch = labelText.match(/(\d+) ha/);
-            document.getElementById('info-nombre').textContent = labelText;
-            document.getElementById('info-cultivo').textContent = '🌱 ' + cultivar;
-            document.getElementById('info-ha').textContent = haMatch ? '📐 Superficie: ' + haMatch[0] : '';
-            const badge = document.getElementById('info-badge');
-            badge.textContent = cultivar;
-            badge.style.cssText = getBadgeStyle(name);
-            card.style.display = 'block';
-        });
-
-        poly.addTo(map);
-    });
-
-// Ajustar vista a los lotes
-if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [60, 60] });
+// DIBUJO
+window.startDraw=()=>{
+  if(!campoActivoId){ showToast('Seleccioná un campo primero',true); return; }
+  drawing=true; drawPts=[]; drawMarkers=[];
+  document.getElementById('cfg-toolbar').style.display='flex';
+  document.getElementById('cfg-hint').textContent='Clic para puntos · Doble clic para cerrar';
+  cfgMap.getContainer().style.cursor='crosshair'; cfgMap.doubleClickZoom.disable();
+};
+function addPoint(ll){
+  drawPts.push(ll);
+  drawMarkers.push(L.circleMarker(ll,{radius:5,color:'#fff',fillColor:loteColor,fillOpacity:1,weight:2}).addTo(cfgMap));
+  if(drawPolyline) cfgMap.removeLayer(drawPolyline);
+  const pts=[...drawPts]; if(pts.length>1) pts.push(pts[0]);
+  drawPolyline=L.polyline(pts,{color:'#fff',weight:2,dashArray:'5,5'}).addTo(cfgMap);
+}
+window.undoPoint=()=>{
+  if(!drawPts.length) return;
+  drawPts.pop(); const m=drawMarkers.pop(); if(m) cfgMap.removeLayer(m);
+  if(drawPolyline) cfgMap.removeLayer(drawPolyline); drawPolyline=null;
+  if(drawPts.length>1){ drawPolyline=L.polyline([...drawPts,drawPts[0]],{color:'#fff',weight:2,dashArray:'5,5'}).addTo(cfgMap); }
+};
+window.finishDraw=()=>{
+  if(drawPts.length<3){ showToast('Necesitás al menos 3 puntos',true); return; }
+  if(drawPolyline) cfgMap.removeLayer(drawPolyline);
+  drawMarkers.forEach(m=>cfgMap.removeLayer(m));
+  drawPolygon=L.polygon(drawPts,{color:'#fff',weight:2,fillColor:loteColor,fillOpacity:0.35}).addTo(cfgMap);
+  pendingCoords=drawPts.map(p=>({lat:p.lat,lng:p.lng}));
+  document.getElementById('l-ha-display').textContent=calcHa(drawPts)+' ha';
+  stopDraw(); openModalLote();
+};
+window.cancelDraw=()=>{ stopDraw(); if(drawPolygon){cfgMap.removeLayer(drawPolygon);drawPolygon=null;} pendingCoords=null; };
+function stopDraw(){
+  drawing=false; drawPts=[]; drawMarkers=[];
+  if(drawPolyline){cfgMap.removeLayer(drawPolyline);drawPolyline=null;}
+  document.getElementById('cfg-toolbar').style.display='none';
+  document.getElementById('cfg-hint').textContent='Seleccioná un campo y presioná "Nuevo lote"';
+  cfgMap.getContainer().style.cursor=''; cfgMap.doubleClickZoom.enable();
 }
 
-// Cerrar info card al click en mapa
-map.on('click', function(e) {
-    if (!e.originalEvent.target.closest) return;
-    document.getElementById('info-card').style.display = 'none';
-});
+// CAMPOS CRUD
+window.openModalCampo=()=>{ tenenciaCampo='propio'; selTen('campo','propio'); document.getElementById('modal-campo').style.display='flex'; setTimeout(()=>document.getElementById('c-nombre').focus(),100); };
+window.closeModal=id=>document.getElementById(id).style.display='none';
+window.selTen=(scope,val)=>{
+  if(scope==='campo'){
+    tenenciaCampo=val;
+    document.getElementById('c-ten-p').className='toggle-opt'+(val==='propio'?' sel-green':'');
+    document.getElementById('c-ten-a').className='toggle-opt'+(val==='arrendado'?' sel-amber':'');
+    document.getElementById('c-precio-wrap').style.display=val==='arrendado'?'block':'none';
+  } else {
+    tenenciaLote=val;
+    document.getElementById('l-ten-p').className='toggle-opt'+(val==='propio'?' sel-green':'');
+    document.getElementById('l-ten-a').className='toggle-opt'+(val==='arrendado'?' sel-amber':'');
+    document.getElementById('l-precio-wrap').style.display=val==='arrendado'?'block':'none';
+  }
+};
+window.guardarCampo=async()=>{
+  const nombre=document.getElementById('c-nombre').value.trim();
+  if(!nombre){ showToast('El nombre es obligatorio',true); return; }
+  sync('syncing');
+  try{
+    const ref=await addDoc(collection(db,'campos'),{nombre,ubicacion:document.getElementById('c-ubicacion').value.trim(),propietario:document.getElementById('c-propietario').value.trim(),tenencia:tenenciaCampo,precio:document.getElementById('c-precio').value||null,creadoEn:new Date().toISOString()});
+    campoActivoId=ref.id; sync('ok'); closeModal('modal-campo');
+    ['c-nombre','c-ubicacion','c-propietario','c-precio'].forEach(id=>document.getElementById(id).value='');
+    showToast('✓ Campo "'+nombre+'" guardado');
+  } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
+};
+
+// LOTES CRUD
+function openModalLote(){
+  tenenciaLote='propio'; selTen('lote','propio');
+
+  document.getElementById('modal-lote').style.display='flex';
+  setTimeout(()=>document.getElementById('l-nombre').focus(),100);
+}
+
+window.cancelarLote=()=>{ closeModal('modal-lote'); if(drawPolygon){cfgMap.removeLayer(drawPolygon);drawPolygon=null;} pendingCoords=null; };
+window.guardarLote=async()=>{
+  const nombre=document.getElementById('l-nombre').value.trim();
+  if(!nombre){ showToast('El nombre es obligatorio',true); return; }
+  if(!pendingCoords){ showToast('No hay polígono dibujado',true); return; }
+  const ha=calcHa(drawPts.length?drawPts:pendingCoords);
+  sync('syncing');
+  try{
+    await addDoc(collection(db,'lotes'),{campoId:campoActivoId,nombre,ha,cultivo:document.getElementById('l-cultivo').value,tenencia:tenenciaLote,propietario:document.getElementById('l-propietario').value.trim(),precio:document.getElementById('l-precio').value||null,coords:pendingCoords,estado:'libre',creadoEn:new Date().toISOString()});
+    sync('ok');
+    if(drawPolygon){cfgMap.removeLayer(drawPolygon);drawPolygon=null;}
+    pendingCoords=null; closeModal('modal-lote');
+    ['l-nombre','l-propietario','l-precio'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('l-cultivo').value='';
+    showToast('✓ Lote "'+nombre+'" guardado ('+ha+' ha)');
+  } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
+};
+window.eliminarLote=async id=>{
+  if(!confirm('¿Eliminar este lote?')) return;
+  sync('syncing');
+  try{ await deleteDoc(doc(db,'lotes',id)); sync('ok'); showToast('Lote eliminado'); }
+  catch(e){ sync('err'); showToast('Error: '+e.message,true); }
+};
+
+// HISTORIAL
+function renderHistorial(){
+  const cl=movimientos.sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
+  const body=document.getElementById('hist-body');
+  if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay movimientos registrados aún.</div>`; return; }
+  body.innerHTML=cl.map(m=>{ const lote=lotes.find(l=>l.id===m.loteId), isEnt=m.tipo==='entrada'; return `<div class="mov-card"><div class="mov-icon" style="background:${isEnt?'#14532d':'#7f1d1d'}">${isEnt?'⬇':'⬆'}</div><div class="mov-info"><div class="mov-titulo">${isEnt?`${m.cantidad} ${m.categoria||'animales'} ingresados`:`Retiro${m.motivo?'·'+m.motivo:''}`}</div><div class="mov-sub">${lote?.nombre||'—'}${m.estadoRepro?' · '+m.estadoRepro:''}</div></div><div class="mov-fecha">${m.fecha||'—'}</div></div>`; }).join('');
+}
+
+// UTILS
+function lastMov(loteId){ return movimientos.filter(m=>m.loteId===loteId).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0]||null; }
+function dDias(fecha){ if(!fecha) return 0; const h=new Date(); h.setHours(0,0,0,0); return Math.max(0,Math.round((h-new Date(fecha+'T00:00:00'))/864e5)); }
+function calcHa(pts){ const R=6371000; let a=0,n=pts.length; for(let i=0;i<n;i++){const p1=pts[i],p2=pts[(i+1)%n],la1=(p1.lat||p1[0])*Math.PI/180,la2=(p2.lat||p2[0])*Math.PI/180,lo1=(p1.lng||p1[1])*Math.PI/180,lo2=(p2.lng||p2[1])*Math.PI/180;a+=(lo2-lo1)*(2+Math.sin(la1)+Math.sin(la2));} return (Math.abs(a*R*R/2)/10000).toFixed(1); }
+
+window.selOne=(el,gId,cls)=>{ el.parentElement.querySelectorAll('.bs-chip').forEach(c=>c.className='bs-chip'); el.className='bs-chip '+cls; };
+window.tog=(el,cls)=>{ el.className=el.className.includes(cls)?'bs-chip':'bs-chip '+cls; };
+window.showToast=(msg,err=false)=>{ const t=document.getElementById('toast'); t.textContent=msg; t.className='show'+(err?' err':''); setTimeout(()=>t.className='',3500); };
+window.selectLote=selectLote;
+
+const today=new Date().toISOString().split('T')[0];
+['f-fecha-ent','f-fecha-sal','f-fecha-mov'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=today; });
 </script>
-
 </body>
 </html>
