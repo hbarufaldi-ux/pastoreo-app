@@ -748,7 +748,7 @@ function selectLote(id){
   if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.flyToBounds(poly.getBounds(),{padding:[80,80],duration:0.55,maxZoom:17}); }
   const estado=lote.estado||'libre', color=EC[estado];
   document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
-  document.getElementById('fam-info').innerHTML=`${lote.cultivo||'Sin cultivo'} · <span style="color:${color}">${EL[estado]}</span>`;
+  document.getElementById('fam-sub').innerHTML=`${lote.cultivo||'Sin cultivo'} · <span style="color:${color}">${EL[estado]}</span>`;
   const mov=lastMov(id);
   let st=`<div>Cultivo: <b>${lote.cultivo||'—'}</b></div>`;
   if(estado==='ocupado'&&mov){
@@ -765,8 +765,7 @@ function selectLote(id){
   }
   else if(estado==='descanso'&&mov){ st+=`<div>Días descansando: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`; }
   else { st+=`<div style="color:var(--muted)">Sin animales</div>`; }
-  document.getElementById('fam-stats').innerHTML=st;
-  document.getElementById('fam-mover').disabled=estado!=='ocupado';
+    document.getElementById('fam-mover').disabled=estado!=='ocupado';
   document.getElementById('fam-baja').disabled=estado!=='ocupado';
   document.getElementById('fam-parto').disabled=estado!=='ocupado';
   const fam=document.getElementById('fam');
