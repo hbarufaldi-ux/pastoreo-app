@@ -276,9 +276,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <div id="fam-body">
         <div class="fam-sect">Acciones</div>
-        <button class="fam-btn" id="fam-ingresar" onclick="openBS('entrada')"><div class="fam-icon" style="background:#14532d">⬇</div><div><div>Ingresar animales</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rodeo o individual</div></div></button>
-        <button class="fam-btn" id="fam-retirar" onclick="openBS('salida')"><div class="fam-icon" style="background:#7f1d1d">⬆</div><div><div>Retirar animales</div><div style="font-size:11px;color:var(--muted);font-weight:400">Registrar salida</div></div></button>
-        <button class="fam-btn" id="fam-mover" onclick="openBS('mover')"><div class="fam-icon" style="background:#1e3a5f">↔</div><div><div>Mover a otro lote</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rotación directa</div></div></button>
+        <button class="fam-btn" id="fam-ingresar" onclick="openBS('entrada')"><div class="fam-icon" style="background:#14532d">⬇</div><div><div>Ingresar</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rodeo o individual</div></div></button>
+        <button class="fam-btn" id="fam-mover" onclick="openBS('mover')"><div class="fam-icon" style="background:#1e3a5f">↔</div><div><div>Mover</div><div style="font-size:11px;color:var(--muted);font-weight:400">Parcial/total · lote/campo</div></div></button>
+        <button class="fam-btn" id="fam-baja" onclick="openBS('baja')"><div class="fam-icon" style="background:#7f1d1d">✕</div><div><div>Baja</div><div style="font-size:11px;color:var(--muted);font-weight:400">Muerte · venta · descarte</div></div></button>
+        <button class="fam-btn" id="fam-parto" onclick="openBS('parto')"><div class="fam-icon" style="background:#4a1d96">🍼</div><div><div>Parto</div><div style="font-size:11px;color:var(--muted);font-weight:400">Registrar nacimientos</div></div></button>
+        <button class="fam-btn" id="fam-estado" onclick="openBS('estado')"><div class="fam-icon" style="background:#1e3a5f">📋</div><div><div>Actualizar estado</div><div style="font-size:11px;color:var(--muted);font-weight:400">Categoría · estado repro</div></div></button>
         <div class="fam-sect">Estado actual</div>
         <div class="fam-stats" id="fam-stats">—</div>
       </div>
@@ -287,23 +289,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="bs-handle" onclick="document.getElementById('bs').classList.remove('open')" style="cursor:pointer;padding:8px 0;margin-bottom:8px"></div>
       <div class="bs-title" id="bs-titulo">—</div>
       <div class="bs-sub" id="bs-sub">—</div>
+      <!-- INGRESAR -->
       <div id="bs-entrada" style="display:none">
         <div class="f-group"><label class="f-label">Fecha ingreso</label><input class="f-input" type="date" id="f-fecha-ent"></div>
-        <div class="f-label" style="margin-bottom:5px">Tipo</div>
-        <div class="chips-wrap" id="tipo-chips"><div class="bs-chip" onclick="selOne(this,'tipo-chips','s-blue')">👥 Rodeo</div><div class="bs-chip" onclick="selOne(this,'tipo-chips','s-blue')">🐄 Individual</div></div>
         <div class="f-label" style="margin-bottom:5px">Categoría</div>
         <div class="chips-wrap" id="cat-chips">
-          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐄 Vacas ordeñe</div>
-          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐄 Vacas secas</div>
-          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐮 Vaquillonas</div>
-          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐂 Toros</div>
-          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🍼 Terneras</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐄 Vaca</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐮 Vaquillona</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🐂 Toro</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🍼 Ternero</div>
+          <div class="bs-chip" onclick="selOne(this,'cat-chips','s-blue')">🍼 Ternera</div>
         </div>
         <div class="f-label" style="margin-bottom:5px">Estado reproductivo</div>
         <div class="chips-wrap" id="estado-chips">
-          <div class="bs-chip" onclick="tog(this,'s-green')">Preñada</div><div class="bs-chip" onclick="tog(this,'s-red')">Vacía</div>
-          <div class="bs-chip" onclick="tog(this,'s-blue')">Inseminada</div><div class="bs-chip" onclick="tog(this,'s-blue')">IATF</div>
-          <div class="bs-chip" onclick="tog(this,'s-amber')">Seca</div><div class="bs-chip" onclick="tog(this,'s-amber')">Celo</div><div class="bs-chip" onclick="tog(this,'s-amber')">Anestro</div>
+          <div class="bs-chip" onclick="tog(this,'s-green')">Preñada</div>
+          <div class="bs-chip" onclick="tog(this,'s-red')">Vacía</div>
+          <div class="bs-chip" onclick="tog(this,'s-green')">Vacía con cría</div>
+          <div class="bs-chip" onclick="tog(this,'s-amber')">Seca preñada</div>
+        </div>
+        <div class="f-label" style="margin-bottom:5px">Origen</div>
+        <div class="chips-wrap" id="origen-chips">
+          <div class="bs-chip" onclick="selOne(this,'origen-chips','s-blue')">🏠 Propio campo</div>
+          <div class="bs-chip" onclick="selOne(this,'origen-chips','s-blue')">🛒 Compra</div>
+          <div class="bs-chip" onclick="selOne(this,'origen-chips','s-blue')">🌾 Otro campo</div>
+          <div class="bs-chip" onclick="selOne(this,'origen-chips','s-blue')">🏚 Corral</div>
         </div>
         <div class="f-row">
           <div class="f-group"><label class="f-label">Cantidad</label><input class="f-input" type="number" id="f-cant" placeholder="ej: 45" min="1"></div>
@@ -311,21 +320,104 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
         <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-ent" placeholder="opcional…"></div>
         <button class="confirm-btn green" onclick="confirmar('entrada')">✓ Confirmar ingreso</button>
-        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="document.getElementById('bs').classList.remove('open')">Cancelar</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
       </div>
-      <div id="bs-salida" style="display:none">
-        <div class="f-group"><label class="f-label">Fecha retiro</label><input class="f-input" type="date" id="f-fecha-sal"></div>
-        <div class="f-group"><label class="f-label">Motivo</label><select class="f-select" id="f-motivo"><option>Rotación programada</option><option>Descanso</option><option>Manejo sanitario</option><option>Otro</option></select></div>
-        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-sal" placeholder="opcional…"></div>
-        <button class="confirm-btn red" onclick="confirmar('salida')">✓ Confirmar retiro</button>
-        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="document.getElementById('bs').classList.remove('open')">Cancelar</button>
-      </div>
+
+      <!-- MOVER -->
       <div id="bs-mover" style="display:none">
-        <div class="f-group"><label class="f-label">Mover a lote</label><select class="f-select" id="f-destino"></select></div>
+        <div class="f-label" style="margin-bottom:5px">Cantidad a mover</div>
+        <div class="chips-wrap" id="mover-cant-chips">
+          <div class="bs-chip" onclick="selOne(this,'mover-cant-chips','s-blue');document.getElementById('f-cant-mov').style.display='none'">Todo el rodeo</div>
+          <div class="bs-chip" onclick="selOne(this,'mover-cant-chips','s-blue');document.getElementById('f-cant-mov').style.display='block'">Parcial</div>
+        </div>
+        <div class="f-group" id="f-cant-mov" style="display:none"><label class="f-label">Cantidad</label><input class="f-input" type="number" id="f-cant-mover" placeholder="ej: 20" min="1"></div>
+        <div class="f-label" style="margin-bottom:5px">Destino</div>
+        <div class="chips-wrap" id="destino-tipo-chips">
+          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('lote')">Otro lote</div>
+          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('parcela')">Otra parcela</div>
+          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('campo')">Otro campo</div>
+          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('corral')">Corral / manga</div>
+        </div>
+        <div class="f-group" id="destino-lote-wrap" style="display:none"><label class="f-label">Lote destino</label><select class="f-select" id="f-destino"></select></div>
+        <div class="f-group" id="destino-parcela-wrap" style="display:none"><label class="f-label">Parcela destino</label><select class="f-select" id="f-destino-parcela"><option>Parcela 1</option><option>Parcela 2</option><option>Parcela 3</option></select></div>
+        <div class="f-group" id="destino-campo-wrap" style="display:none"><label class="f-label">Campo destino</label><input class="f-input" id="f-destino-campo" placeholder="Nombre del campo destino"></div>
+        <div class="f-group" id="destino-corral-wrap" style="display:none"><label class="f-label">Motivo</label><input class="f-input" id="f-destino-corral" placeholder="ej: vacunación, tacto, etc."></div>
         <div class="f-group"><label class="f-label">Fecha</label><input class="f-input" type="date" id="f-fecha-mov"></div>
         <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-mov" placeholder="opcional…"></div>
         <button class="confirm-btn blue" onclick="confirmar('mover')">↔ Confirmar movimiento</button>
-        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="document.getElementById('bs').classList.remove('open')">Cancelar</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+      </div>
+
+      <!-- BAJA -->
+      <div id="bs-baja" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha</label><input class="f-input" type="date" id="f-fecha-baja"></div>
+        <div class="f-label" style="margin-bottom:5px">Motivo de baja</div>
+        <div class="chips-wrap" id="baja-chips">
+          <div class="bs-chip" onclick="selOne(this,'baja-chips','s-red')">💀 Muerte</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-chips','s-red')">💰 Venta</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-chips','s-amber')">🚫 Descarte</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-chips','s-amber')">🏥 Enfermedad</div>
+        </div>
+        <div class="f-label" style="margin-bottom:5px">Categoría afectada</div>
+        <div class="chips-wrap" id="baja-cat-chips">
+          <div class="bs-chip" onclick="selOne(this,'baja-cat-chips','s-blue')">🐄 Vaca</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-cat-chips','s-blue')">🐮 Vaquillona</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-cat-chips','s-blue')">🐂 Toro</div>
+          <div class="bs-chip" onclick="selOne(this,'baja-cat-chips','s-blue')">🍼 Ternero/a</div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Cantidad</label><input class="f-input" type="number" id="f-cant-baja" placeholder="ej: 2" min="1"></div>
+          <div class="f-group"><label class="f-label">RP (opcional)</label><input class="f-input" type="text" id="f-rp-baja" placeholder="ej: 1234"></div>
+        </div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-baja" placeholder="opcional…"></div>
+        <button class="confirm-btn red" onclick="confirmar('baja')">✕ Confirmar baja</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+      </div>
+
+      <!-- PARTO -->
+      <div id="bs-parto" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha de parto</label><input class="f-input" type="date" id="f-fecha-parto"></div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Terneros vivos 🍼♂</label><input class="f-input" type="number" id="f-terneros" placeholder="0" min="0" value="0"></div>
+          <div class="f-group"><label class="f-label">Terneras vivas 🍼♀</label><input class="f-input" type="number" id="f-terneras" placeholder="0" min="0" value="0"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Mortinatos ♂</label><input class="f-input" type="number" id="f-mort-m" placeholder="0" min="0" value="0"></div>
+          <div class="f-group"><label class="f-label">Mortinatos ♀</label><input class="f-input" type="number" id="f-mort-f" placeholder="0" min="0" value="0"></div>
+        </div>
+        <div class="f-group"><label class="f-label">Vacas que parieron</label><input class="f-input" type="number" id="f-vacas-parto" placeholder="ej: 10" min="1"></div>
+        <div class="f-label" style="margin-bottom:5px">Origen del servicio</div>
+        <div class="chips-wrap" id="servicio-chips">
+          <div class="bs-chip" onclick="selOne(this,'servicio-chips','s-blue')">💉 IA</div>
+          <div class="bs-chip" onclick="selOne(this,'servicio-chips','s-blue')">🐂 Repaso toro</div>
+        </div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-parto" placeholder="opcional…"></div>
+        <button class="confirm-btn green" onclick="confirmar('parto')">🍼 Confirmar parto</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+      </div>
+
+      <!-- ACTUALIZAR ESTADO -->
+      <div id="bs-estado" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha</label><input class="f-input" type="date" id="f-fecha-estado"></div>
+        <div class="f-label" style="margin-bottom:5px">Nuevo estado reproductivo</div>
+        <div class="chips-wrap" id="nuevo-estado-chips">
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-green')">Preñada IA</div>
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-green')">Preñada toro</div>
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-red')">Vacía</div>
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-green')">Vacía con cría</div>
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-amber')">Seca preñada</div>
+          <div class="bs-chip" onclick="selOne(this,'nuevo-estado-chips','s-blue')">Inseminada</div>
+        </div>
+        <div class="f-label" style="margin-bottom:5px">Categoría afectada (opcional)</div>
+        <div class="chips-wrap" id="est-cat-chips">
+          <div class="bs-chip" onclick="selOne(this,'est-cat-chips','s-blue')">🐄 Vacas</div>
+          <div class="bs-chip" onclick="selOne(this,'est-cat-chips','s-blue')">🐮 Vaquillonas</div>
+          <div class="bs-chip" onclick="selOne(this,'est-cat-chips','s-blue')">Todo el rodeo</div>
+        </div>
+        <div class="f-group"><label class="f-label">Cantidad animales afectados</label><input class="f-input" type="number" id="f-cant-estado" placeholder="opcional…" min="1"></div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-estado" placeholder="ej: diagnóstico eco, tacto..."></div>
+        <button class="confirm-btn blue" onclick="confirmar('estado')">📋 Confirmar actualización</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
       </div>
     </div>
     <div id="legend"><h4>Estado lotes</h4><div class="leg-row"><div class="leg-dot" style="background:var(--green)"></div>Con animales</div><div class="leg-row"><div class="leg-dot" style="background:var(--amber)"></div>Descansando</div><div class="leg-row"><div class="leg-dot" style="background:var(--blue)"></div>Libre</div><div class="leg-row"><div class="leg-dot" style="background:var(--purple)"></div>Reservado</div></div>
@@ -573,8 +665,9 @@ function selectLote(id){
   else if(estado==='descanso'&&mov){ st+=`<div>Días desc: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`; }
   else { st+=`<div style="color:var(--muted)">Sin animales</div>`; }
   document.getElementById('fam-stats').innerHTML=st;
-  document.getElementById('fam-retirar').disabled=estado!=='ocupado';
   document.getElementById('fam-mover').disabled=estado!=='ocupado';
+  document.getElementById('fam-baja').disabled=estado!=='ocupado';
+  document.getElementById('fam-parto').disabled=estado!=='ocupado';
   const fam=document.getElementById('fam');
   if(window.innerWidth>700){
     fam.style.left='12px'; fam.style.bottom='16px'; fam.style.top='auto';
@@ -592,17 +685,39 @@ window.closeFam=()=>{
 
 // BOTTOM SHEET
 window.openBS=tipo=>{
-  ['entrada','salida','mover'].forEach(t=>document.getElementById('bs-'+t).style.display='none');
-  document.getElementById('bs-'+tipo).style.display='block';
+  ['entrada','mover','baja','parto','estado'].forEach(t=>{
+    const el=document.getElementById('bs-'+t); if(el) el.style.display='none';
+  });
+  const el=document.getElementById('bs-'+tipo); if(el) el.style.display='block';
   const lote=lotes.find(l=>l.id===loteSelId);
-  document.getElementById('bs-titulo').textContent={entrada:'Ingresar animales',salida:'Retirar animales',mover:'Mover a otro lote'}[tipo];
+  const titulos={entrada:'⬇ Ingresar animales',mover:'↔ Mover animales',baja:'✕ Registrar baja',parto:'🍼 Registrar parto',estado:'📋 Actualizar estado'};
+  document.getElementById('bs-titulo').textContent=titulos[tipo]||tipo;
   document.getElementById('bs-sub').textContent=lote?`${lote.nombre} · ${lote.ha} ha · ${lote.cultivo||''}`:'';
-  // Reset todos los chips del formulario
-  document.querySelectorAll('#tipo-chips .bs-chip, #cat-chips .bs-chip, #estado-chips .bs-chip').forEach(c=>c.className='bs-chip');
-  document.getElementById('f-cant').value='';
-  document.getElementById('f-obs-ent').value='';
+  // Reset chips
+  document.querySelectorAll('.chips-wrap .bs-chip').forEach(c=>c.className='bs-chip');
+  // Reset campos cantidad
+  ['f-cant','f-cant-mover','f-cant-baja','f-rp-baja','f-obs-ent','f-obs-mov','f-obs-baja','f-obs-parto','f-obs-estado'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  ['f-terneros','f-terneras','f-mort-m','f-mort-f'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='0';
+  });
+  // Ocultar destinos opcionales
+  ['destino-lote-wrap','destino-parcela-wrap','destino-campo-wrap','destino-corral-wrap','f-cant-mov'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
   document.getElementById('bs').classList.add('open');
   document.getElementById('fam').classList.remove('open');
+};
+
+window.closeBS=()=>document.getElementById('bs').classList.remove('open');
+
+window.showDestino=tipo=>{
+  ['destino-lote-wrap','destino-parcela-wrap','destino-campo-wrap','destino-corral-wrap'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  const map={lote:'destino-lote-wrap',parcela:'destino-parcela-wrap',campo:'destino-campo-wrap',corral:'destino-corral-wrap'};
+  const el=document.getElementById(map[tipo]); if(el) el.style.display='block';
 };
 
 window.confirmar=async tipo=>{
@@ -615,30 +730,124 @@ window.confirmar=async tipo=>{
       const cant=document.getElementById('f-cant').value;
       if(!cant){ showToast('Ingresá la cantidad',true); sync('ok'); return; }
       const catEl=document.querySelector('#cat-chips .bs-chip.s-blue');
-      const estados=[...document.querySelectorAll('#estado-chips .bs-chip')].filter(c=>c.className.includes('s-')).map(c=>c.textContent.trim());
-      // Sumar a los animales existentes
+      const estadoEl=document.querySelector('#estado-chips .bs-chip[class*="s-"]');
+      const origenEl=document.querySelector('#origen-chips .bs-chip.s-blue');
       const movAnterior=lastMov(lote.id);
       const cantAnterior=(lote.estado==='ocupado'&&movAnterior)?Number(movAnterior.cantidad)||0:0;
       const cantTotal=cantAnterior+Number(cant);
-      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'entrada',fecha:document.getElementById('f-fecha-ent').value||today,cantidad:cantTotal,cantidadAgregada:Number(cant),categoria:catEl?catEl.textContent.trim():'',estadoRepro:estados.join(', '),parcela:document.getElementById('f-parcela').value,obs:document.getElementById('f-obs-ent').value,creadoEn:new Date().toISOString()});
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'entrada',
+        fecha:document.getElementById('f-fecha-ent').value||today,
+        cantidad:cantTotal,cantidadAgregada:Number(cant),
+        categoria:catEl?catEl.textContent.trim():'',
+        estadoRepro:estadoEl?estadoEl.textContent.trim():'',
+        origen:origenEl?origenEl.textContent.trim():'',
+        parcela:document.getElementById('f-parcela').value,
+        obs:document.getElementById('f-obs-ent').value,
+        creadoEn:new Date().toISOString()
+      });
       await updateDoc(doc(db,'lotes',lote.id),{estado:'ocupado'});
       showToast(`✓ +${cant} animales → total ${cantTotal} en ${lote.nombre}`);
-    } else if(tipo==='salida'){
-      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'salida',fecha:document.getElementById('f-fecha-sal').value||today,motivo:document.getElementById('f-motivo').value,obs:document.getElementById('f-obs-sal').value,creadoEn:new Date().toISOString()});
-      await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso'});
-      showToast(`✓ Retiro registrado en ${lote.nombre}`);
-    } else {
+
+    } else if(tipo==='mover'){
+      const esTotal=document.querySelector('#mover-cant-chips .bs-chip.s-blue')?.textContent.includes('Todo');
+      const movActual=lastMov(lote.id);
+      const cantActual=Number(movActual?.cantidad||0);
+      const cantMover=esTotal?cantActual:Number(document.getElementById('f-cant-mover').value||0);
+      if(!cantMover){ showToast('Ingresá la cantidad a mover',true); sync('ok'); return; }
+      const cantResta=cantActual-cantMover;
       const destId=document.getElementById('f-destino').value;
       const destLote=lotes.find(l=>l.id===destId);
-      const mov=lastMov(lote.id);
       const fecha=document.getElementById('f-fecha-mov').value||today;
-      await addDoc(collection(db,'movimientos'),{loteId:lote.id,campoId:campoActivoId,tipo:'salida',fecha,motivo:'Rotación → '+(destLote?.nombre||''),obs:document.getElementById('f-obs-mov').value,creadoEn:new Date().toISOString()});
-      await addDoc(collection(db,'movimientos'),{loteId:destId,campoId:campoActivoId,tipo:'entrada',fecha,cantidad:mov?.cantidad||0,categoria:mov?.categoria||'',estadoRepro:mov?.estadoRepro||'',obs:`Movido desde ${lote.nombre}`,creadoEn:new Date().toISOString()});
-      await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso'});
-      await updateDoc(doc(db,'lotes',destId),{estado:'ocupado'});
-      showToast(`↔ Movido → ${destLote?.nombre}`);
+      // Registrar salida del lote origen
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'salida',fecha,
+        cantidad:cantResta,motivo:'Movimiento',
+        obs:document.getElementById('f-obs-mov').value,creadoEn:new Date().toISOString()
+      });
+      // Registrar entrada en destino si es otro lote
+      if(destId&&destLote){
+        const movDest=lastMov(destId);
+        const cantDestAnterior=(destLote.estado==='ocupado'&&movDest)?Number(movDest.cantidad||0):0;
+        await addDoc(collection(db,'movimientos'),{
+          loteId:destId,campoId:campoActivoId,tipo:'entrada',fecha,
+          cantidad:cantDestAnterior+cantMover,cantidadAgregada:cantMover,
+          categoria:movActual?.categoria||'',estadoRepro:movActual?.estadoRepro||'',
+          obs:`Movido desde ${lote.nombre}`,creadoEn:new Date().toISOString()
+        });
+        await updateDoc(doc(db,'lotes',destId),{estado:'ocupado'});
+      }
+      await updateDoc(doc(db,'lotes',lote.id),{estado:cantResta>0?'ocupado':'descanso'});
+      showToast(`↔ ${cantMover} animales movidos${destLote?' → '+destLote.nombre:''}`);
+
+    } else if(tipo==='baja'){
+      const cant=document.getElementById('f-cant-baja').value;
+      if(!cant){ showToast('Ingresá la cantidad',true); sync('ok'); return; }
+      const motivoEl=document.querySelector('#baja-chips .bs-chip.s-red, #baja-chips .bs-chip.s-amber');
+      const catEl=document.querySelector('#baja-cat-chips .bs-chip.s-blue');
+      const movActual=lastMov(lote.id);
+      const cantActual=Number(movActual?.cantidad||0);
+      const cantResta=Math.max(0,cantActual-Number(cant));
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'baja',
+        fecha:document.getElementById('f-fecha-baja').value||today,
+        cantidad:cantResta,cantidadBaja:Number(cant),
+        motivo:motivoEl?motivoEl.textContent.trim():'',
+        categoria:catEl?catEl.textContent.trim():'',
+        rp:document.getElementById('f-rp-baja').value,
+        obs:document.getElementById('f-obs-baja').value,
+        creadoEn:new Date().toISOString()
+      });
+      await updateDoc(doc(db,'lotes',lote.id),{estado:cantResta>0?'ocupado':'libre'});
+      showToast(`✕ Baja registrada: ${cant} animales. Quedan ${cantResta}`);
+
+    } else if(tipo==='parto'){
+      const terneros=Number(document.getElementById('f-terneros').value||0);
+      const terneras=Number(document.getElementById('f-terneras').value||0);
+      const mortM=Number(document.getElementById('f-mort-m').value||0);
+      const mortF=Number(document.getElementById('f-mort-f').value||0);
+      const vacasParto=Number(document.getElementById('f-vacas-parto').value||0);
+      const totalNacidos=terneros+terneras;
+      const servicioEl=document.querySelector('#servicio-chips .bs-chip.s-blue');
+      const fecha=document.getElementById('f-fecha-parto').value||today;
+      if(!vacasParto){ showToast('Ingresá la cantidad de vacas que parieron',true); sync('ok'); return; }
+      const movActual=lastMov(lote.id);
+      const cantActual=Number(movActual?.cantidad||0);
+      // Sumar terneros vivos al lote
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'parto',fecha,
+        cantidad:cantActual+totalNacidos,
+        terneros,terneras,mortM,mortF,vacasParto,
+        servicio:servicioEl?servicioEl.textContent.trim():'',
+        obs:document.getElementById('f-obs-parto').value,
+        creadoEn:new Date().toISOString()
+      });
+      // Las vacas pasan a "vacía con cría"
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'estado',fecha,
+        estadoRepro:'Vacía con cría',cantidadAfectada:vacasParto,
+        obs:'Actualización automática post parto',creadoEn:new Date().toISOString()
+      });
+      showToast(`🍼 Parto registrado: ${totalNacidos} terneros vivos${mortM+mortF>0?', '+(mortM+mortF)+' mortinatos':''}`);
+
+    } else if(tipo==='estado'){
+      const estadoEl=document.querySelector('#nuevo-estado-chips .bs-chip[class*="s-"]');
+      if(!estadoEl){ showToast('Seleccioná un estado',true); sync('ok'); return; }
+      const catEl=document.querySelector('#est-cat-chips .bs-chip.s-blue');
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'estado',
+        fecha:document.getElementById('f-fecha-estado').value||today,
+        estadoRepro:estadoEl.textContent.trim(),
+        categoria:catEl?catEl.textContent.trim():'',
+        cantidadAfectada:document.getElementById('f-cant-estado').value||null,
+        obs:document.getElementById('f-obs-estado').value,
+        creadoEn:new Date().toISOString()
+      });
+      showToast(`📋 Estado actualizado: ${estadoEl.textContent.trim()}`);
     }
-    sync('ok'); document.getElementById('bs').classList.remove('open');
+
+    sync('ok');
+    document.getElementById('bs').classList.remove('open');
   } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
 };
 
