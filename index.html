@@ -387,6 +387,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- MODAL EDITAR LOTE -->
+<div class="modal-overlay" id="modal-editar-lote" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Editar lote</div><button class="modal-close" onclick="closeModal('modal-editar-lote')">✕</button></div>
+    <div class="modal-body">
+      <div class="f-group"><label class="f-label">Nombre *</label><input class="f-input" id="el-nombre" placeholder="ej: Potrero Norte…"></div>
+      <div class="f-group"><label class="f-label">Cultivo actual</label>
+        <select class="f-select" id="el-cultivo">
+          <option value="">Sin cultivo</option><option>Alfalfa</option><option>Alfalfa/verdeo</option>
+          <option>Maíz</option><option>Sorgo</option><option>Cebada</option><option>Soja</option>
+          <option>Trigo</option><option>Pastura natural</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="f-group"><label class="f-label">Tenencia</label>
+        <div class="toggle-group">
+          <div class="toggle-opt sel-green" id="el-ten-p" onclick="selTenEdit('propio')">✓ Propio</div>
+          <div class="toggle-opt" id="el-ten-a" onclick="selTenEdit('arrendado')">Arrendado</div>
+        </div>
+      </div>
+      <div class="f-group"><label class="f-label">Propietario</label><input class="f-input" id="el-propietario" placeholder="Propietario del lote"></div>
+      <div class="f-group" id="el-precio-wrap" style="display:none"><label class="f-label">Precio ($/ha/año)</label><input class="f-input" id="el-precio" type="number"></div>
+      <div class="f-group"><label class="f-label">Estado</label>
+        <select class="f-select" id="el-estado">
+          <option value="libre">Libre</option>
+          <option value="ocupado">Con animales</option>
+          <option value="descanso">Descansando</option>
+          <option value="reservado">Reservado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-surface" onclick="closeModal('modal-editar-lote')">Cancelar</button>
+      <button class="btn btn-green" onclick="guardarEdicionLote()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL LOTE -->
 <div class="modal-overlay" id="modal-lote" style="display:none">
   <div class="modal">
@@ -646,7 +683,7 @@ function renderCfgLotes(){
   const cl=lotes.filter(l=>l.campoId===campoActivoId);
   let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Campo: <b style="color:var(--text)">${campo.nombre}</b></div>`;
   if(!cl.length) html+=`<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px">No hay lotes aún.</div>`;
-  else html+=cl.map(l=>`<div class="lote-item"><div class="li-color" style="background:${EC[l.estado||'libre']||'#3b82f6'}"></div><div class="li-info"><div class="li-nombre">${l.nombre}</div><div class="li-sub">${l.ha}ha·${l.cultivo||'Sin cultivo'}·${l.tenencia}</div></div><button class="li-del" onclick="eliminarLote('${l.id}')">✕</button></div>`).join('');
+  else html+=cl.map(l=>`<div class="lote-item"><div class="li-color" style="background:${EC[l.estado||'libre']||'#3b82f6'}"></div><div class="li-info"><div class="li-nombre">${l.nombre}</div><div class="li-sub">${l.ha}ha·${l.cultivo||'Sin cultivo'}·${l.tenencia}</div></div><button class="li-del" onclick="editarLote('${l.id}')" style="margin-right:4px">✏</button><button class="li-del" onclick="eliminarLote('${l.id}')">✕</button></div>`).join('');
   html+=`<div style="margin-top:10px"><button class="btn btn-blue" onclick="startDraw()">+ Nuevo lote en ${campo.nombre}</button></div>`;
   body.innerHTML=html;
 }
@@ -760,6 +797,49 @@ window.guardarLote=async()=>{
     showToast('✓ Lote "'+nombre+'" guardado ('+ha+' ha)');
   } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
 };
+let loteEditandoId = null;
+let tenenciaEdit = 'propio';
+
+window.editarLote = id => {
+  loteEditandoId = id;
+  const lote = lotes.find(l => l.id === id);
+  if(!lote) return;
+  document.getElementById('el-nombre').value = lote.nombre || '';
+  document.getElementById('el-cultivo').value = lote.cultivo || '';
+  document.getElementById('el-propietario').value = lote.propietario || '';
+  document.getElementById('el-precio').value = lote.precio || '';
+  document.getElementById('el-estado').value = lote.estado || 'libre';
+  selTenEdit(lote.tenencia || 'propio');
+  document.getElementById('modal-editar-lote').style.display = 'flex';
+  setTimeout(() => document.getElementById('el-nombre').focus(), 100);
+};
+
+window.selTenEdit = val => {
+  tenenciaEdit = val;
+  document.getElementById('el-ten-p').className = 'toggle-opt' + (val === 'propio' ? ' sel-green' : '');
+  document.getElementById('el-ten-a').className = 'toggle-opt' + (val === 'arrendado' ? ' sel-amber' : '');
+  document.getElementById('el-precio-wrap').style.display = val === 'arrendado' ? 'block' : 'none';
+};
+
+window.guardarEdicionLote = async () => {
+  const nombre = document.getElementById('el-nombre').value.trim();
+  if(!nombre) { showToast('El nombre es obligatorio', true); return; }
+  sync('syncing');
+  try {
+    await updateDoc(doc(db,'lotes',loteEditandoId), {
+      nombre,
+      cultivo: document.getElementById('el-cultivo').value,
+      tenencia: tenenciaEdit,
+      propietario: document.getElementById('el-propietario').value.trim(),
+      precio: document.getElementById('el-precio').value || null,
+      estado: document.getElementById('el-estado').value,
+    });
+    sync('ok');
+    closeModal('modal-editar-lote');
+    showToast('✓ Lote actualizado');
+  } catch(e) { sync('err'); showToast('Error: ' + e.message, true); }
+};
+
 window.eliminarLote=async id=>{
   if(!confirm('¿Eliminar este lote?')) return;
   sync('syncing');
