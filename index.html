@@ -36,13 +36,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sp-tab{flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;border-bottom:2px solid transparent;}
 .sp-tab.active{color:var(--green);border-bottom-color:var(--green);}
 .sp-body{flex:1;overflow-y:auto;padding:10px;}
-.lote-chip{background:rgba(10,10,14,0.88);border:1.5px solid rgba(255,255,255,0.22);border-radius:12px;padding:7px 13px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;cursor:pointer;backdrop-filter:blur(8px);text-align:center;line-height:1.6;transform:translateX(-50%);box-shadow:0 3px 12px rgba(0,0,0,0.5);min-width:90px;}
-.lote-chip:hover{transform:translateX(-50%) scale(1.06);}
-.lote-chip.ocupado{border-color:rgba(34,197,94,0.6);}
-.lote-chip.descanso{border-color:rgba(245,158,11,0.6);}
-.chip-top{font-size:13px;font-weight:800;letter-spacing:0.2px;}
-.chip-bot{font-size:11px;font-weight:600;margin-top:2px;}
-.chip-bot.green{color:#86efac;}.chip-bot.amber{color:#fcd34d;}.chip-bot.red{color:#fca5a5;}.chip-bot.blue{color:#93c5fd;}
+.lote-chip{background:rgba(10,10,14,0.93);border:1.5px solid rgba(255,255,255,0.18);border-radius:10px;padding:8px 12px;cursor:pointer;backdrop-filter:blur(8px);transform:translateX(-50%);box-shadow:0 2px 10px rgba(0,0,0,0.5);min-width:110px;}
+.lote-chip:hover{transform:translateX(-50%) scale(1.04);}
+.lote-chip.ocupado{border-color:rgba(34,197,94,0.65);}
+.lote-chip.descanso{border-color:rgba(245,158,11,0.55);}
+.lote-chip.libre{border-color:rgba(59,130,246,0.5);}
+.chip-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.chip-nombre{font-size:11px;font-weight:500;color:#fff;}
+.chip-ha{font-size:9px;color:#555;}
+.chip-total{font-size:13px;font-weight:500;margin-bottom:2px;}
+.chip-total.green{color:#22c55e;}
+.chip-total.blue{color:#3b82f6;}
+.chip-total.amber{color:#f59e0b;}
+.chip-dias{font-size:10px;color:#666;}
+.chip-dias .ct{font-weight:500;}
+.chip-dias .green{color:#86efac;}
+.chip-dias .amber{color:#fcd34d;}
+.chip-dias .blue{color:#93c5fd;}
 #fam{position:absolute;z-index:600;min-width:248px;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.55);display:none;overflow:hidden;}
 #fam.open{display:block;}
 #fam-header{padding:13px 15px 10px;border-bottom:0.5px solid var(--border);position:relative;padding-right:36px;}
@@ -648,17 +658,26 @@ function renderMapLotes(){
     pastLayers[lote.id]=poly;
     const center=poly.getBounds().getCenter();
     const mov=lastMov(lote.id);
-    let bt='Libre',bc='blue';
+
+    // Construir chip nuevo
+    let chipInner = '';
     if(estado==='ocupado'&&mov){
       const d=dDias(mov.fecha);
-      const ultRepro=movimientos.filter(m=>m.loteId===lote.id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
-      const reproTxt=ultRepro?.estadoRepro?` · ${ultRepro.estadoRepro.split(' ')[0]}`:'';
-      bt=`${mov.cantidad||'?'}cab·${d}d${reproTxt}`;
-      bc=d>10?'red':d>6?'amber':'green';
+      const dCls=d>10?'red':d>6?'amber':'green';
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
+        <div class="chip-total green">${mov.cantidad||0} animales</div>
+        <div class="chip-dias"><span class="ct ${dCls}">${d}d</span> en lote</div>`;
+    } else if(estado==='descanso'&&mov){
+      const d=dDias(mov.fecha);
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
+        <div class="chip-total amber">Descanso</div>
+        <div class="chip-dias"><span class="ct amber">${d}d</span> descansando</div>`;
+    } else {
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
+        <div class="chip-total blue">Libre</div>
+        <div class="chip-dias"><span class="ct blue">Sin animales</span></div>`;
     }
-    else if(estado==='descanso'&&mov){ bt=`Desc ${dDias(mov.fecha)}d`; bc='amber'; }
-    else if(estado==='reservado'){ bt='Reservado'; }
-    const m=L.marker(center,{icon:L.divIcon({className:'',html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')"><div class="chip-top">${lote.nombre}·${lote.ha}ha</div><div class="chip-bot ${bc}">${bt}</div></div>`,iconAnchor:[0,0]}),interactive:false}).addTo(pastMap);
+    const m=L.marker(center,{icon:L.divIcon({className:'',html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')">${chipInner}</div>`,iconAnchor:[0,0]}),interactive:false}).addTo(pastMap);
     chipMarkers[lote.id]=m;
   });
   if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60]});
