@@ -755,23 +755,26 @@ function renderMapLotes(){
     pastLayers[lote.id]=poly;
     const center=poly.getBounds().getCenter();
 
-    // Construir chip nuevo
-    let chipInner = '';
+    // Estado real (ocupado/descanso/listo)
+    const estadoReal = getEstadoReal(lote, mov);
     const cantText = mov?.cantidad === 1 ? '1 animal' : `${mov?.cantidad||0} animales`;
-    if(estado==='ocupado'&&mov){
+    let chipInner = '';
+
+    if(estadoReal==='ocupado'&&mov){
       const d=dDias(mov.fecha);
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
         <div class="chip-total green">${cantText}</div>
         <div class="chip-dias green">${d}d en lote</div>`;
-    } else if(estado==='descanso'&&mov){
-      const d=dDias(mov.fecha);
+    } else if(estadoReal==='listo'){
+      const d=mov?dDias(mov.fecha):0;
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
-        <div class="chip-total amber">Descanso</div>
-        <div class="chip-dias amber">${d}d descansando</div>`;
+        <div class="chip-total blue">Listo ✓</div>
+        <div class="chip-dias blue">${d}d descansando</div>`;
     } else {
+      const d=mov?dDias(mov.fecha):0;
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
-        <div class="chip-total blue">Libre</div>
-        <div class="chip-dias blue">Sin animales</div>`;
+        <div class="chip-total amber">Descansando</div>
+        <div class="chip-dias amber">${d}d</div>`;
     }
     const chipOpacity = pastMap.getZoom() >= ZOOM_CHIPS ? '1' : '0';
     const m=L.marker(center,{icon:L.divIcon({
