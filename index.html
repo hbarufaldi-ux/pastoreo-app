@@ -336,13 +336,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div style="height:0.5px;background:var(--border);"></div>
       <div id="fam-actions">
         <div class="fa-act-row">
-          <button class="fa-btn green" id="fam-ingresar" onclick="openBS('entrada')"><i class="ti ti-arrow-down" aria-hidden="true"></i>Ingresar</button>
-          <button class="fa-btn blue"  id="fam-mover"    onclick="openBS('mover')"><i class="ti ti-arrows-exchange" aria-hidden="true"></i>Mover</button>
-          <button class="fa-btn red"   id="fam-baja"     onclick="openBS('baja')"><i class="ti ti-x" aria-hidden="true"></i>Baja</button>
+          <button class="fa-btn green"  id="fam-ingresar" onclick="openBS('entrada')"><i class="ti ti-arrow-down" aria-hidden="true"></i>Ingresar</button>
+          <button class="fa-btn blue"   id="fam-mover"    onclick="openBS('mover')"><i class="ti ti-arrows-exchange" aria-hidden="true"></i>Mover</button>
+          <button class="fa-btn red"    id="fam-baja"     onclick="openBS('baja')"><i class="ti ti-x" aria-hidden="true"></i>Baja</button>
         </div>
         <div class="fa-act-row">
-          <button class="fa-btn purple" id="fam-parto"  onclick="openBS('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
-          <button class="fa-btn amber"  id="fam-estado" onclick="openBS('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
+          <button class="fa-btn purple" id="fam-parto"    onclick="openBS('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
+          <button class="fa-btn amber"  id="fam-estado"   onclick="openBS('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
+          <button class="fa-btn" id="fam-cosechar" onclick="openBS('cosechar')" style="background:rgba(20,184,166,0.15);color:#5eead4"><i class="ti ti-scissors" aria-hidden="true"></i>Cosechar</button>
         </div>
       </div>
     </div>
@@ -454,6 +455,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
         <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-parto" placeholder="opcional…"></div>
         <button class="confirm-btn green" onclick="confirmar('parto')">🍼 Confirmar parto</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+      </div>
+
+      <!-- COSECHAR -->
+      <div id="bs-cosechar" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha de cosecha / siega</label><input class="f-input" type="date" id="f-fecha-cosechar"></div>
+        <div class="f-label" style="margin-bottom:5px">Tipo de cosecha</div>
+        <div class="chips-wrap" id="cosechar-tipo-chips">
+          <div class="bs-chip" onclick="selOne(this,'cosechar-tipo-chips','s-blue')">🐄 Pastoreo (voisin)</div>
+          <div class="bs-chip" onclick="selOne(this,'cosechar-tipo-chips','s-blue')">🌾 Cosecha mecánica (rollos)</div>
+        </div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-cosechar" placeholder="rendimiento, condición, etc…"></div>
+        <button class="confirm-btn" style="background:rgba(20,184,166,0.8);color:#fff" onclick="confirmar('cosechar')">🌾 Confirmar cosecha</button>
         <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
       </div>
 
@@ -588,7 +602,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="modal-body">
       <div class="f-group"><label class="f-label">Superficie calculada</label><div class="f-ha" id="l-ha-display">— ha</div></div>
       <div class="f-group"><label class="f-label">Nombre *</label><input class="f-input" id="l-nombre" placeholder="ej: Potrero Norte…"></div>
-      <div class="f-group"><label class="f-label">Cultivo actual</label><select class="f-select" id="l-cultivo"><option value="">Sin cultivo</option><option>Alfalfa</option><option>Alfalfa/verdeo</option><option>Maíz</option><option>Sorgo</option><option>Cebada</option><option>Soja</option><option>Trigo</option><option>Pastura natural</option><option>Otro</option></select></div>
+      <div class="f-group"><label class="f-label">Cultivo actual</label><select class="f-select" id="l-cultivo" onchange="actualizarDiasEstimados()"><option value="">Sin cultivo</option><option>Alfalfa</option><option>Alfalfa/verdeo</option><option>Maíz</option><option>Sorgo</option><option>Cebada</option><option>Soja</option><option>Trigo</option><option>Pastura natural</option><option>Otro</option></select></div>
+      <div class="f-group"><label class="f-label">Días estimados de descanso</label><input class="f-input" type="number" id="l-dias-descanso" placeholder="ej: 28" min="1"></div>
       <div class="f-group"><label class="f-label">Tenencia</label><div class="toggle-group"><div class="toggle-opt sel-green" id="l-ten-p" onclick="selTen('lote','propio')">✓ Propio</div><div class="toggle-opt" id="l-ten-a" onclick="selTen('lote','arrendado')">Arrendado</div></div></div>
       <div class="f-group"><label class="f-label">Propietario del lote</label><input class="f-input" id="l-propietario" placeholder="Si es distinto al campo"></div>
       <div class="f-group" id="l-precio-wrap" style="display:none"><label class="f-label">Precio arrendamiento ($/ha/año)</label><input class="f-input" id="l-precio" type="number" placeholder="ej: 350"></div>
@@ -624,18 +639,33 @@ let tenenciaCampo='propio', tenenciaLote='propio', loteColor='#3b82f6', panelOpe
 let drawing=false, drawPts=[], drawMarkers=[], drawPolyline=null, drawPolygon=null, pendingCoords=null;
 
 const COLORS=['#3b82f6','#22c55e','#f97316','#f59e0b','#a855f7','#ef4444','#14b8a6','#ec4899'];
-const EC={ocupado:'#22c55e',descanso:'#f59e0b',libre:'#3b82f6',reservado:'#a855f7'};
-const EL={ocupado:'Con animales',descanso:'Descansando',libre:'Libre',reservado:'Reservado'};
+const EC={ocupado:'#22c55e',descanso:'#f59e0b',listo:'#3b82f6',libre:'#f59e0b'};
+const EL={ocupado:'Con animales',descanso:'Descansando',listo:'Listo',libre:'Descansando'};
 
 // MAPS
 const pastMap=L.map('map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
 const cfgMap =L.map('cfg-map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
+const DIAS_CULTIVO={
+  'Alfalfa':28,'Alfalfa/verdeo':25,'Pastura natural':21,
+  'Maíz':30,'Sorgo':20,'Cebada':25,'Soja':30,'Trigo':25,'Otro':21
+};
+
+function getEstadoReal(lote, mov){
+  const estado = lote.estado||'descanso';
+  if(estado==='ocupado') return 'ocupado';
+  // Calcular si está listo
+  const diasDesc = mov ? dDias(mov.fecha) : 0;
+  const diasMin = lote.diasDescanso || DIAS_CULTIVO[lote.cultivo] || 21;
+  if(diasDesc >= diasMin) return 'listo';
+  return 'descanso';
+}
+
 const mkSat=()=>L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
 const mkOSM=()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 let pastTile=mkSat(); pastTile.addTo(pastMap);
 mkSat().addTo(cfgMap);
 // Ocultar/mostrar chips según zoom
-const ZOOM_CHIPS = 14; // zoom mínimo para mostrar chips
+const ZOOM_CHIPS = 13; // zoom mínimo para mostrar chips
 pastMap.on('zoomend', ()=>{
   const z = pastMap.getZoom();
   // Primero mostrar todos
@@ -712,14 +742,18 @@ function renderMapLotes(){
     if(!lote.coords?.length) return;
     const coords=lote.coords.map(c=>Array.isArray(c)?c:[c.lat,c.lng]);
     bounds.push(...coords);
-    const estado=lote.estado||'libre', color=EC[estado], isDes=estado==='descanso';
-    const poly=L.polygon(coords,{color:'rgba(255,255,255,0.5)',weight:1.5,fillColor:color,fillOpacity:isDes?0.22:0.4,dashArray:isDes?'6,5':null}).addTo(pastMap);
-    poly.on('mouseover',()=>poly.setStyle({fillOpacity:isDes?0.4:0.62,weight:2.5}));
-    poly.on('mouseout', ()=>poly.setStyle({fillOpacity:isDes?0.22:0.4,weight:1.5}));
+    const mov=lastMov(lote.id);
+    const estadoReal2=getEstadoReal(lote,mov);
+    const color=EC[estadoReal2];
+    const isDes=estadoReal2==='descanso'||estadoReal2==='listo';
+    const fillOp=estadoReal2==='ocupado'?0.4:0.22;
+    const dash=isDes?'6,5':null;
+    const poly=L.polygon(coords,{color:'rgba(255,255,255,0.5)',weight:1.5,fillColor:color,fillOpacity:fillOp,dashArray:dash}).addTo(pastMap);
+    poly.on('mouseover',()=>poly.setStyle({fillOpacity:fillOp+0.2,weight:2.5}));
+    poly.on('mouseout', ()=>poly.setStyle({fillOpacity:fillOp,weight:1.5}));
     poly.on('click',e=>{ L.DomEvent.stopPropagation(e); selectLote(lote.id); });
     pastLayers[lote.id]=poly;
     const center=poly.getBounds().getCenter();
-    const mov=lastMov(lote.id);
 
     // Construir chip nuevo
     let chipInner = '';
@@ -742,7 +776,7 @@ function renderMapLotes(){
     const chipOpacity = pastMap.getZoom() >= ZOOM_CHIPS ? '1' : '0';
     const m=L.marker(center,{icon:L.divIcon({
       className:'',
-      html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-50%);opacity:${chipOpacity};transition:opacity 0.2s">${chipInner}</div>`,
+      html:`<div class="lote-chip ${estadoReal}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-50%);opacity:${chipOpacity};transition:opacity 0.2s">${chipInner}</div>`,
       iconSize:[0,0],
       iconAnchor:[0,0]
     }),interactive:true}).addTo(pastMap);
@@ -756,27 +790,46 @@ function renderMapLotes(){
 
 function resolverColisionesChips(){
   const markers = Object.values(chipMarkers);
-  const rects = [];
+  // Reset posiciones primero
   markers.forEach(m=>{
     const el = m.getElement()?.querySelector('.lote-chip');
-    if(!el) return;
-    const r = el.getBoundingClientRect();
-    rects.push({el, r, visible:true});
+    if(el){ el.style.transform='translate(-50%,-50%)'; }
   });
-  // Comparar cada par
-  for(let i=0;i<rects.length;i++){
-    if(!rects[i].visible) continue;
-    for(let j=i+1;j<rects.length;j++){
-      if(!rects[j].visible) continue;
-      const a=rects[i].r, b=rects[j].r;
-      const overlap = !(a.right+8 < b.left || b.right+8 < a.left || a.bottom+8 < b.top || b.bottom+8 < a.top);
-      if(overlap){
-        // Ocultar el chip más pequeño (lote con menos ha)
-        rects[j].el.style.opacity='0';
-        rects[j].el.style.pointerEvents='none';
-        rects[j].visible=false;
+  // Detectar y desplazar
+  const items = markers.map(m=>{
+    const el = m.getElement()?.querySelector('.lote-chip');
+    if(!el) return null;
+    return {el, r:el.getBoundingClientRect(), dx:0, dy:0};
+  }).filter(Boolean);
+
+  const MAX_ITER = 5;
+  for(let iter=0;iter<MAX_ITER;iter++){
+    let moved=false;
+    for(let i=0;i<items.length;i++){
+      for(let j=i+1;j<items.length;j++){
+        const a=items[i].el.getBoundingClientRect();
+        const b=items[j].el.getBoundingClientRect();
+        const pad=6;
+        const overlapX = a.right+pad > b.left && b.right+pad > a.left;
+        const overlapY = a.bottom+pad > b.top && b.bottom+pad > a.top;
+        if(overlapX && overlapY){
+          // Calcular dirección de desplazamiento
+          const cx=(a.left+a.right)/2, cy=(a.top+a.bottom)/2;
+          const dx2=(b.left+b.right)/2, dy2=(b.top+b.bottom)/2;
+          const angle=Math.atan2(dy2-cy, dx2-cx);
+          const push=8;
+          items[j].dx+=Math.cos(angle)*push;
+          items[j].dy+=Math.sin(angle)*push;
+          items[i].dx-=Math.cos(angle)*push/2;
+          items[i].dy-=Math.sin(angle)*push/2;
+          // Aplicar
+          items[j].el.style.transform=`translate(calc(-50% + ${items[j].dx}px), calc(-50% + ${items[j].dy}px))`;
+          items[i].el.style.transform=`translate(calc(-50% + ${items[i].dx}px), calc(-50% + ${items[i].dy}px))`;
+          moved=true;
+        }
       }
     }
+    if(!moved) break;
   }
 }
 window._cc=id=>selectLote(id);
@@ -794,9 +847,9 @@ function selectLote(id){
   document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
   document.getElementById('fam-sub').textContent=lote.cultivo||'Sin cultivo';
   const badge=document.getElementById('fam-badge');
-  const badgeColors={ocupado:'background:rgba(34,197,94,0.15);color:#86efac',descanso:'background:rgba(245,158,11,0.15);color:#fcd34d',libre:'background:rgba(59,130,246,0.15);color:#93c5fd',reservado:'background:rgba(168,85,247,0.15);color:#d8b4fe'};
-  badge.style.cssText=badgeColors[estado]||badgeColors.libre;
-  badge.textContent=EL[estado];
+  const estadoCard=getEstadoReal(lote,mov); const badgeColors={ocupado:'background:rgba(34,197,94,0.15);color:#86efac',descanso:'background:rgba(245,158,11,0.15);color:#fcd34d',listo:'background:rgba(59,130,246,0.15);color:#93c5fd'};
+  badge.style.cssText=badgeColors[estadoCard]||badgeColors.descanso;
+  badge.textContent=EL[estadoCard]||'Descansando';
 
   const mov=lastMov(id);
   const dias=mov?dDias(mov.fecha):0;
@@ -870,7 +923,7 @@ window.closeFam=()=>{
 
 // BOTTOM SHEET
 window.openBS=tipo=>{
-  ['entrada','mover','baja','parto','estado'].forEach(t=>{
+  ['entrada','mover','baja','parto','estado','cosechar'].forEach(t=>{
     const el=document.getElementById('bs-'+t); if(el) el.style.display='none';
   });
   const el=document.getElementById('bs-'+tipo); if(el) el.style.display='block';
@@ -1025,6 +1078,21 @@ window.confirmar=async tipo=>{
       movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'parto',fecha:document.getElementById('f-fecha-parto').value||today,cantidad:cantActual+totalNacidos,terneros,terneras,mortM,mortF,vacasParto,creadoEn:new Date().toISOString()});
       showToast(`🍼 Parto registrado: ${totalNacidos} terneros vivos${mortM+mortF>0?', '+(mortM+mortF)+' mortinatos':''}`);
 
+    } else if(tipo==='cosechar'){
+      const tipoEl=document.querySelector('#cosechar-tipo-chips .bs-chip.s-blue');
+      const fecha=document.getElementById('f-fecha-cosechar').value||today;
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'cosechar',
+        fecha,
+        tipoCosecha:tipoEl?tipoEl.textContent.trim():'',
+        obs:document.getElementById('f-obs-cosechar').value,
+        creadoEn:new Date().toISOString()
+      });
+      await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso',fechaDescanso:fecha});
+      const idxC=lotes.findIndex(l=>l.id===lote.id);
+      if(idxC>=0){ lotes[idxC].estado='descanso'; lotes[idxC].fechaDescanso=fecha; }
+      movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'cosechar',fecha,creadoEn:new Date().toISOString()});
+      showToast(`🌾 Cosecha registrada en ${lote.nombre} · inicia descanso`);
     } else if(tipo==='estado'){
       const estadoEl=document.querySelector('#nuevo-estado-chips .bs-chip[class*="s-"]');
       if(!estadoEl){ showToast('Seleccioná un estado',true); sync('ok'); return; }
@@ -1043,8 +1111,11 @@ window.confirmar=async tipo=>{
     }
 
     sync('ok');
-    document.getElementById('bs').classList.remove('open');
-    // Actualizar UI localmente sin esperar Firebase (importante para offline)
+    // Cerrar con animación
+    const bsEl = document.getElementById('bs');
+    bsEl.style.transition='transform 0.2s ease-in';
+    bsEl.classList.remove('open');
+    setTimeout(()=>{ bsEl.style.transition=''; },300);
     actualizarUILocal();
   } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
 };
@@ -1207,11 +1278,12 @@ window.guardarLote=async()=>{
   const ha=calcHa(drawPts.length?drawPts:pendingCoords);
   sync('syncing');
   try{
-    await addDoc(collection(db,'lotes'),{campoId:campoActivoId,nombre,ha,cultivo:document.getElementById('l-cultivo').value,tenencia:tenenciaLote,propietario:document.getElementById('l-propietario').value.trim(),precio:document.getElementById('l-precio').value||null,coords:pendingCoords,estado:'libre',creadoEn:new Date().toISOString()});
+    const diasDesc=document.getElementById('l-dias-descanso').value;
+    await addDoc(collection(db,'lotes'),{campoId:campoActivoId,nombre,ha,cultivo:document.getElementById('l-cultivo').value,tenencia:tenenciaLote,propietario:document.getElementById('l-propietario').value.trim(),precio:document.getElementById('l-precio').value||null,coords:pendingCoords,estado:'descanso',diasDescanso:diasDesc?Number(diasDesc):null,creadoEn:new Date().toISOString()});
     sync('ok');
     if(drawPolygon){cfgMap.removeLayer(drawPolygon);drawPolygon=null;}
     pendingCoords=null; closeModal('modal-lote');
-    ['l-nombre','l-propietario','l-precio'].forEach(id=>document.getElementById(id).value='');
+    ['l-nombre','l-propietario','l-precio','l-dias-descanso'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('l-cultivo').value='';
     showToast('✓ Lote "'+nombre+'" guardado ('+ha+' ha)');
   } catch(e){ sync('err'); showToast('Error: '+e.message,true); }
@@ -1271,7 +1343,7 @@ function renderHistorial(){
   const cl=[...movimientos].sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
   const body=document.getElementById('hist-body');
   if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay movimientos registrados aún.</div>`; return; }
-  const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'}};
+  const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'},cosechar:{bg:'#0f766e',ic:'🌾'}};
   body.innerHTML=cl.map(m=>{
     const lote=lotes.find(l=>l.id===m.loteId);
     const t=m.tipo||'entrada';
@@ -1282,6 +1354,7 @@ function renderHistorial(){
     else if(t==='baja') { titulo=`Baja: ${m.cantidadBaja||'?'} ${m.categoria||'animales'}`; sub=`Motivo: ${m.motivo||'—'} · Quedan ${m.cantidad||0} cab${m.rp?' · RP: '+m.rp:''}`; }
     else if(t==='parto') { titulo=`Parto: ${(m.terneros||0)+(m.terneras||0)} terneros vivos`; sub=`♂${m.terneros||0} ♀${m.terneras||0}${(m.mortM||0)+(m.mortF||0)>0?' · Mortinatos: '+((m.mortM||0)+(m.mortF||0)):''} · ${m.vacasParto||0} vacas`; }
     else if(t==='estado') { titulo=`Estado: ${m.estadoRepro||'—'}`; sub=`${m.categoria||'Rodeo'}${m.cantidadAfectada?' · '+m.cantidadAfectada+' cab':''}`; }
+    else if(t==='cosechar') { titulo=`Cosecha: ${m.tipoCosecha||'—'}`; sub=`Inicia descanso${m.obs?' · '+m.obs:''}`; }
     else { titulo=`Retiro${m.motivo?' · '+m.motivo:''}`; sub=`${m.obs||''}`; }
     return `<div class="mov-card">
       <div class="mov-icon" style="background:${bg}">${ic}</div>
