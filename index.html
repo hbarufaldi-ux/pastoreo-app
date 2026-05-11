@@ -42,31 +42,70 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lote-chip.descanso{border-color:rgba(245,158,11,0.55);}
 .lote-chip.libre{border-color:rgba(59,130,246,0.5);}
 .chip-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;}
-.chip-nombre{font-size:13px;font-weight:600;color:#fff;}
-.chip-ha{font-size:11px;color:#666;}
+.chip-nombre{font-size:13px;font-weight:600;color:#f0f0f0;}
+.chip-ha{font-size:11px;color:#c8c8c8;}
 .chip-total{font-size:15px;font-weight:600;margin-bottom:3px;}
 .chip-total.green{color:#22c55e;}
 .chip-total.blue{color:#3b82f6;}
 .chip-total.amber{color:#f59e0b;}
-.chip-dias{font-size:12px;color:#777;}
+.chip-dias{font-size:12px;}
 .chip-dias .ct{font-weight:600;}
-.chip-dias .green{color:#86efac;}
-.chip-dias .amber{color:#fcd34d;}
-.chip-dias .blue{color:#93c5fd;}
-#fam{position:absolute;z-index:600;min-width:248px;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.55);display:none;overflow:hidden;}
+.chip-dias.green{color:#22c55e;}
+.chip-dias.amber{color:#f59e0b;}
+.chip-dias.blue{color:#3b82f6;}
+#fam{
+  position:absolute;z-index:600;width:260px;
+  background:var(--surface);border:0.5px solid var(--border);
+  border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  display:none;overflow:hidden;
+}
 #fam.open{display:block;}
-#fam-header{padding:13px 15px 10px;border-bottom:0.5px solid var(--border);position:relative;padding-right:36px;}
-#fam-nombre{font-size:15px;font-weight:800;}
-#fam-info{font-size:12px;color:var(--muted);margin-top:2px;}
-#fam-close{position:absolute;top:9px;right:9px;background:var(--surface2);border:none;color:var(--muted);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-#fam-body{padding:10px 12px 13px;}
-.fam-sect{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:9px 0 5px;}
-.fam-btn{display:flex;align-items:center;gap:10px;width:100%;background:var(--surface2);border:none;color:var(--text);font-size:13px;font-weight:600;padding:9px 11px;border-radius:10px;cursor:pointer;margin-bottom:5px;text-align:left;transition:background .12s;}
-.fam-btn:hover{background:var(--surface3);}
-.fam-btn:disabled{opacity:0.35;cursor:not-allowed;}
-.fam-icon{width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.fam-stats{font-size:12px;color:var(--muted);line-height:1.9;}
-.fam-stats b{color:var(--text);}
+#fam-handle{width:32px;height:4px;background:var(--surface3);border-radius:2px;margin:10px auto 0;}
+#fam-header{padding:10px 14px 8px;border-bottom:0.5px solid var(--border);position:relative;padding-right:34px;}
+#fam-nombre{font-size:15px;font-weight:600;color:var(--text);}
+#fam-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+#fam-badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;margin-top:4px;}
+#fam-close{position:absolute;top:9px;right:9px;background:var(--surface2);border:none;color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+#fam-metrics{padding:8px 14px;display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.fm-card{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;}
+.fm-val{font-size:14px;font-weight:500;}
+.fm-val.green{color:var(--green);}
+.fm-val.amber{color:var(--amber);}
+.fm-val.blue{color:var(--blue);}
+.fm-val.purple{color:var(--purple);}
+.fm-lbl{font-size:9px;color:var(--muted);margin-top:1px;}
+#fam-animales{padding:8px 14px;}
+.fa-sect{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.fa-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.fa-cant{font-size:12px;font-weight:500;color:var(--text);width:24px;}
+.fa-cat{font-size:11px;color:var(--muted);flex:1;}
+.fa-pill{font-size:9px;font-weight:500;padding:2px 6px;border-radius:8px;}
+.fa-pill.verde{background:rgba(34,197,94,0.12);color:#86efac;}
+.fa-pill.rojo{background:rgba(239,68,68,0.12);color:#fca5a5;}
+.fa-pill.amber{background:rgba(245,158,11,0.12);color:#fcd34d;}
+.fa-pill.purple{background:rgba(168,85,247,0.12);color:#d8b4fe;}
+#fam-actions{padding:8px 14px 12px;}
+.fa-act-row{display:flex;gap:5px;margin-bottom:5px;}
+.fa-btn{flex:1;padding:8px 4px;border-radius:9px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:500;}
+.fa-btn i{font-size:16px;}
+.fa-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.fa-btn.green{background:rgba(34,197,94,0.15);color:#86efac;}
+.fa-btn.blue{background:rgba(59,130,246,0.15);color:#93c5fd;}
+.fa-btn.red{background:rgba(239,68,68,0.15);color:#fca5a5;}
+.fa-btn.purple{background:rgba(168,85,247,0.15);color:#d8b4fe;}
+.fa-btn.amber{background:rgba(245,158,11,0.15);color:#fcd34d;}
+@media(max-width:700px){
+  #fam{
+    width:100% !important;left:0 !important;right:0 !important;
+    bottom:0 !important;top:auto !important;
+    border-radius:20px 20px 0 0 !important;
+    max-height:80vh !important;overflow-y:auto !important;
+    transform:translateY(100%) !important;
+    transition:transform .3s cubic-bezier(.32,.72,0,1) !important;
+    display:block !important;
+  }
+  #fam.open{transform:translateY(0) !important;}
+}
 #bs{position:absolute;bottom:0;left:0;right:0;z-index:700;background:var(--surface);border-radius:20px 20px 0 0;border-top:0.5px solid var(--border);padding:0 16px 32px;max-height:78vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
 #bs.open{transform:translateY(0);}
 .bs-handle{width:48px;height:5px;background:var(--surface3);border-radius:3px;margin:0 auto 14px;cursor:pointer;}
@@ -281,19 +320,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mt-btn" onclick="setLayer('osm')" style="padding:9px 14px;">🗺</button>
     </div>
     <div id="fam">
+      <div id="fam-handle"></div>
       <div id="fam-header">
-        <div id="fam-nombre">—</div><div id="fam-info">—</div>
+        <div id="fam-nombre">—</div>
+        <div id="fam-sub">—</div>
+        <span id="fam-badge">—</span>
         <button id="fam-close" onclick="closeFam()">✕</button>
       </div>
-      <div id="fam-body">
-        <div class="fam-sect">Acciones</div>
-        <button class="fam-btn" id="fam-ingresar" onclick="openBS('entrada')"><div class="fam-icon" style="background:#14532d">⬇</div><div><div>Ingresar</div><div style="font-size:11px;color:var(--muted);font-weight:400">Rodeo o individual</div></div></button>
-        <button class="fam-btn" id="fam-mover" onclick="openBS('mover')"><div class="fam-icon" style="background:#1e3a5f">↔</div><div><div>Mover</div><div style="font-size:11px;color:var(--muted);font-weight:400">Parcial/total · lote/campo</div></div></button>
-        <button class="fam-btn" id="fam-baja" onclick="openBS('baja')"><div class="fam-icon" style="background:#7f1d1d">✕</div><div><div>Baja</div><div style="font-size:11px;color:var(--muted);font-weight:400">Muerte · venta · descarte</div></div></button>
-        <button class="fam-btn" id="fam-parto" onclick="openBS('parto')"><div class="fam-icon" style="background:#4a1d96">🍼</div><div><div>Parto</div><div style="font-size:11px;color:var(--muted);font-weight:400">Registrar nacimientos</div></div></button>
-        <button class="fam-btn" id="fam-estado" onclick="openBS('estado')"><div class="fam-icon" style="background:#1e3a5f">📋</div><div><div>Actualizar estado</div><div style="font-size:11px;color:var(--muted);font-weight:400">Categoría · estado repro</div></div></button>
-        <div class="fam-sect">Estado actual</div>
-        <div class="fam-stats" id="fam-stats">—</div>
+      <div style="height:0.5px;background:var(--border);"></div>
+      <div id="fam-metrics"></div>
+      <div style="height:0.5px;background:var(--border);"></div>
+      <div id="fam-animales" style="display:none">
+        <div class="fa-sect">Animales</div>
+        <div id="fam-anim-rows"></div>
+      </div>
+      <div style="height:0.5px;background:var(--border);"></div>
+      <div id="fam-actions">
+        <div class="fa-act-row">
+          <button class="fa-btn green" id="fam-ingresar" onclick="openBS('entrada')"><i class="ti ti-arrow-down" aria-hidden="true"></i>Ingresar</button>
+          <button class="fa-btn blue"  id="fam-mover"    onclick="openBS('mover')"><i class="ti ti-arrows-exchange" aria-hidden="true"></i>Mover</button>
+          <button class="fa-btn red"   id="fam-baja"     onclick="openBS('baja')"><i class="ti ti-x" aria-hidden="true"></i>Baja</button>
+        </div>
+        <div class="fa-act-row">
+          <button class="fa-btn purple" id="fam-parto"  onclick="openBS('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
+          <button class="fa-btn amber"  id="fam-estado" onclick="openBS('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
+        </div>
       </div>
     </div>
     <div id="bs">
@@ -661,21 +712,21 @@ function renderMapLotes(){
 
     // Construir chip nuevo
     let chipInner = '';
+    const cantText = mov?.cantidad === 1 ? '1 animal' : `${mov?.cantidad||0} animales`;
     if(estado==='ocupado'&&mov){
       const d=dDias(mov.fecha);
-      const dCls=d>10?'red':d>6?'amber':'green';
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
-        <div class="chip-total green">${mov.cantidad||0} animales</div>
-        <div class="chip-dias"><span class="ct ${dCls}">${d}d</span> en lote</div>`;
+        <div class="chip-total green">${cantText}</div>
+        <div class="chip-dias green">${d}d en lote</div>`;
     } else if(estado==='descanso'&&mov){
       const d=dDias(mov.fecha);
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
         <div class="chip-total amber">Descanso</div>
-        <div class="chip-dias"><span class="ct amber">${d}d</span> descansando</div>`;
+        <div class="chip-dias amber">${d}d descansando</div>`;
     } else {
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
         <div class="chip-total blue">Libre</div>
-        <div class="chip-dias"><span class="ct blue">Sin animales</span></div>`;
+        <div class="chip-dias blue">Sin animales</div>`;
     }
     const m=L.marker(center,{icon:L.divIcon({className:'',html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')">${chipInner}</div>`,iconAnchor:[0,0]}),interactive:false}).addTo(pastMap);
     chipMarkers[lote.id]=m;
@@ -714,8 +765,20 @@ function selectLote(id){
   document.getElementById('fam-baja').disabled=estado!=='ocupado';
   document.getElementById('fam-parto').disabled=estado!=='ocupado';
   const fam=document.getElementById('fam');
-  if(window.innerWidth>700){
-    fam.style.left='12px'; fam.style.bottom='16px'; fam.style.top='auto';
+  if(window.innerWidth>700 && poly){
+    // Posicionar al lado del lote
+    const bounds=poly.getBounds();
+    const ne=pastMap.latLngToContainerPoint(bounds.getNorthEast());
+    const mapEl=document.getElementById('map');
+    const mapW=mapEl.offsetWidth;
+    const cardW=260;
+    const margin=12;
+    let left=ne.x+margin;
+    if(left+cardW>mapW-margin) left=ne.x-cardW-margin;
+    if(left<margin) left=margin;
+    fam.style.left=left+'px';
+    fam.style.top=Math.max(60,ne.y-20)+'px';
+    fam.style.bottom='auto';
   }
   fam.classList.add('open');
   document.getElementById('map-hint').style.opacity='0';
@@ -910,13 +973,14 @@ window.confirmar=async tipo=>{
 };
 
 function actualizarUILocal(){
-  // Forzar re-render del mapa y panel con los datos actuales
   renderMapLotes();
   renderPanel();
-  // Si el FAM está abierto, actualizar sus stats
+  renderHistorial();
   if(loteSelId){
-    const lote=lotes.find(l=>l.id===loteSelId);
-    if(lote) selectLote(loteSelId);
+    // Re-abrir FAM con datos actualizados
+    setTimeout(()=>{
+      if(loteSelId) selectLote(loteSelId);
+    }, 50);
   }
 }
 
