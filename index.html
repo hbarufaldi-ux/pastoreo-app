@@ -849,12 +849,12 @@ function selectLote(id){
   // Header
   document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
   document.getElementById('fam-sub').textContent=lote.cultivo||'Sin cultivo';
+  const mov=lastMov(id);
   const badge=document.getElementById('fam-badge');
-  const estadoCard=getEstadoReal(lote,mov); const badgeColors={ocupado:'background:rgba(34,197,94,0.15);color:#86efac',descanso:'background:rgba(245,158,11,0.15);color:#fcd34d',listo:'background:rgba(59,130,246,0.15);color:#93c5fd'};
+  const estadoCard=getEstadoReal(lote,mov);
+  const badgeColors={ocupado:'background:rgba(34,197,94,0.15);color:#86efac',descanso:'background:rgba(245,158,11,0.15);color:#fcd34d',listo:'background:rgba(59,130,246,0.15);color:#93c5fd'};
   badge.style.cssText=badgeColors[estadoCard]||badgeColors.descanso;
   badge.textContent=EL[estadoCard]||'Descansando';
-
-  const mov=lastMov(id);
   const dias=mov?dDias(mov.fecha):0;
   const metricsEl=document.getElementById('fam-metrics');
   const animEl=document.getElementById('fam-animales');
