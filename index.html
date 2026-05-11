@@ -65,8 +65,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #fam-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 #fam-badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;margin-top:4px;}
 #fam-close{position:absolute;top:9px;right:9px;background:var(--surface2);border:none;color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
-#fam-metrics{padding:8px 14px;display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.fm-card{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;}
+#fam-metrics{padding:8px 14px;display:flex;flex-wrap:wrap;gap:5px;}
+.fm-card{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 10px;min-width:70px;flex:0 0 auto;}
 .fm-val{font-size:14px;font-weight:500;}
 .fm-val.green{color:var(--green);}
 .fm-val.amber{color:var(--amber);}
@@ -248,7 +248,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
   #fam.open{transform:translateY(0) !important;}
   #fam-header{padding:0 16px 12px;padding-right:44px;}
-  #fam-header::before{content:'';display:block;width:36px;height:4px;background:#3A3A3C;border-radius:2px;margin:12px auto 14px;}
+
   #fam-close{top:14px;right:12px;}
   #fam-nombre{font-size:18px;font-weight:800;}
   #fam-info{font-size:14px;margin-top:3px;}
@@ -813,13 +813,11 @@ function selectLote(id){
       <div class="fm-card"><div class="fm-val blue">${dias}d</div><div class="fm-lbl">en lote</div></div>
       ${partosTot>0?`<div class="fm-card"><div class="fm-val purple">${partosTot}</div><div class="fm-lbl">crías</div></div>`:''}`;
     const ultEstado=movimientos.filter(m=>m.loteId===id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
-    if(mov.categoria||ultEstado){
-      animEl.style.display='block';
-      let rows='';
-      if(mov.categoria) rows+=`<div class="fa-row"><span class="fa-cant">${mov.cantidad}</span><span class="fa-cat">${mov.categoria}</span>${ultEstado?`<span class="fa-pill verde">${ultEstado.estadoRepro}</span>`:''}</div>`;
-      if(partosTot>0) rows+=`<div class="fa-row"><span class="fa-cant">${partosTot}</span><span class="fa-cat">Crías</span><span class="fa-pill purple">Con madre</span></div>`;
-      rowsEl.innerHTML=rows;
-    } else { animEl.style.display='none'; }
+    animEl.style.display='block';
+    let rows='';
+    if(mov.cantidad>0) rows+=`<div class="fa-row"><span class="fa-cant">${mov.cantidad}</span><span class="fa-cat">${mov.categoria||'Animales'}</span>${ultEstado?`<span class="fa-pill verde">${ultEstado.estadoRepro}</span>`:''}</div>`;
+    if(partosTot>0) rows+=`<div class="fa-row"><span class="fa-cant">${partosTot}</span><span class="fa-cat">Crías</span><span class="fa-pill purple">Con madre</span></div>`;
+    rowsEl.innerHTML=rows||'<div style="font-size:11px;color:#555">Sin detalle registrado</div>';
   } else if(estado==='descanso'&&mov){
     metricsEl.innerHTML=`
       <div class="fm-card"><div class="fm-val amber">${dias}d</div><div class="fm-lbl">descansando</div></div>
