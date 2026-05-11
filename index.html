@@ -634,6 +634,18 @@ const mkSat=()=>L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/service
 const mkOSM=()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 let pastTile=mkSat(); pastTile.addTo(pastMap);
 mkSat().addTo(cfgMap);
+// Ocultar/mostrar chips según zoom
+const ZOOM_CHIPS = 14; // zoom mínimo para mostrar chips
+pastMap.on('zoomend', ()=>{
+  const z = pastMap.getZoom();
+  // Primero mostrar todos
+  Object.values(chipMarkers).forEach(m=>{
+    const el = m.getElement()?.querySelector('.lote-chip');
+    if(el){ el.style.opacity = z >= ZOOM_CHIPS ? '1' : '0'; el.style.pointerEvents = z >= ZOOM_CHIPS ? 'auto' : 'none'; }
+  });
+  // Luego resolver colisiones si zoom suficiente
+  if(z >= ZOOM_CHIPS) setTimeout(resolverColisionesChips, 150);
+});
 pastMap.on('click',()=>{
   closeFam();
   document.getElementById('bs').classList.remove('open');
@@ -727,9 +739,10 @@ function renderMapLotes(){
         <div class="chip-total blue">Libre</div>
         <div class="chip-dias blue">Sin animales</div>`;
     }
+    const chipOpacity = pastMap.getZoom() >= ZOOM_CHIPS ? '1' : '0';
     const m=L.marker(center,{icon:L.divIcon({
       className:'',
-      html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-50%)">${chipInner}</div>`,
+      html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-50%);opacity:${chipOpacity};transition:opacity 0.2s">${chipInner}</div>`,
       iconSize:[0,0],
       iconAnchor:[0,0]
     }),interactive:true}).addTo(pastMap);
@@ -737,10 +750,40 @@ function renderMapLotes(){
     chipMarkers[lote.id]=m;
   });
   if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60]});
+  // Detectar colisiones entre chips después de un pequeño delay
+  setTimeout(resolverColisionesChips, 300);
+}
+
+function resolverColisionesChips(){
+  const markers = Object.values(chipMarkers);
+  const rects = [];
+  markers.forEach(m=>{
+    const el = m.getElement()?.querySelector('.lote-chip');
+    if(!el) return;
+    const r = el.getBoundingClientRect();
+    rects.push({el, r, visible:true});
+  });
+  // Comparar cada par
+  for(let i=0;i<rects.length;i++){
+    if(!rects[i].visible) continue;
+    for(let j=i+1;j<rects.length;j++){
+      if(!rects[j].visible) continue;
+      const a=rects[i].r, b=rects[j].r;
+      const overlap = !(a.right+8 < b.left || b.right+8 < a.left || a.bottom+8 < b.top || b.bottom+8 < a.top);
+      if(overlap){
+        // Ocultar el chip más pequeño (lote con menos ha)
+        rects[j].el.style.opacity='0';
+        rects[j].el.style.pointerEvents='none';
+        rects[j].visible=false;
+      }
+    }
+  }
 }
 window._cc=id=>selectLote(id);
 
 function selectLote(id){
+  // Cerrar card anterior
+  document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   loteSelId=id;
   const lote=lotes.find(l=>l.id===id); if(!lote) return;
