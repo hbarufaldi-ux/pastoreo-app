@@ -211,6 +211,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   /* controles del mapa — barra inferior mobile */
   #map-controls-mobile{display:flex !important;}
+  #cfg-mobile-btns{display:flex !important;}
   #map-hint{bottom:72px;}
 
   /* bottom sheet formulario */
@@ -447,6 +448,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mt-btn c-red" onclick="cancelDraw()">✕ Cancelar</button>
     </div>
     <div id="cfg-hint">Seleccioná un campo y presioná "Nuevo lote"</div>
+    <!-- Botón mobile para nuevo lote -->
+    <div id="cfg-mobile-btns" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:400;display:none;gap:8px;">
+      <button class="mt-btn c-green" onclick="startDraw()" style="padding:10px 20px;font-size:14px">+ Nuevo lote</button>
+    </div>
   </div>
   <div id="cfg-sidebar">
     <div class="cfg-head"><div style="font-size:14px;font-weight:700">Configuración</div><button class="btn btn-green btn-sm" onclick="openModalCampo()">+ Campo</button></div>
@@ -538,7 +543,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyAKHgelHox51MvVKnAVZrxkPu2rq017jsA",
@@ -548,6 +553,12 @@ const db = getFirestore(initializeApp({
   messagingSenderId:"898440701678",
   appId:"1:898440701678:web:ba0ced9b53f4a2ab03b5ff"
 }));
+
+// Persistencia offline
+enableIndexedDbPersistence(db).catch(err=>{
+  if(err.code==='failed-precondition') console.warn('Offline: múltiples pestañas abiertas');
+  else if(err.code==='unimplemented') console.warn('Offline: navegador no soportado');
+});
 
 let campos=[], lotes=[], movimientos=[];
 let campoActivoId=null, loteSelId=null, spTab='lista', cfgTab='campos';
@@ -640,7 +651,13 @@ function renderMapLotes(){
     const center=poly.getBounds().getCenter();
     const mov=lastMov(lote.id);
     let bt='Libre',bc='blue';
-    if(estado==='ocupado'&&mov){ const d=dDias(mov.fecha); bt=`${mov.cantidad||'?'}cab·${d}d`; bc=d>10?'red':d>6?'amber':'green'; }
+    if(estado==='ocupado'&&mov){
+      const d=dDias(mov.fecha);
+      const ultRepro=movimientos.filter(m=>m.loteId===lote.id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
+      const reproTxt=ultRepro?.estadoRepro?` · ${ultRepro.estadoRepro.split(' ')[0]}`:'';
+      bt=`${mov.cantidad||'?'}cab·${d}d${reproTxt}`;
+      bc=d>10?'red':d>6?'amber':'green';
+    }
     else if(estado==='descanso'&&mov){ bt=`Desc ${dDias(mov.fecha)}d`; bc='amber'; }
     else if(estado==='reservado'){ bt='Reservado'; }
     const m=L.marker(center,{icon:L.divIcon({className:'',html:`<div class="lote-chip ${estado}" onclick="window._cc('${lote.id}')"><div class="chip-top">${lote.nombre}·${lote.ha}ha</div><div class="chip-bot ${bc}">${bt}</div></div>`,iconAnchor:[0,0]}),interactive:false}).addTo(pastMap);
@@ -661,8 +678,19 @@ function selectLote(id){
   document.getElementById('fam-info').innerHTML=`${lote.cultivo||'Sin cultivo'} · <span style="color:${color}">${EL[estado]}</span>`;
   const mov=lastMov(id);
   let st=`<div>Cultivo: <b>${lote.cultivo||'—'}</b></div>`;
-  if(estado==='ocupado'&&mov){ st+=`<div>Animales: <b style="color:var(--green)">${mov.cantidad} cab</b></div><div>Categoría: <b>${mov.categoria||'—'}</b></div>${mov.estadoRepro?`<div>Repro: <b>${mov.estadoRepro}</b></div>`:''}<div>Días en lote: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div><div>Carga: <b>${(mov.cantidad/lote.ha).toFixed(1)} cab/ha</b></div>`; }
-  else if(estado==='descanso'&&mov){ st+=`<div>Días desc: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`; }
+  if(estado==='ocupado'&&mov){
+    st+=`<div>Animales: <b style="color:var(--green)">${mov.cantidad} cab</b></div>`;
+    if(mov.categoria) st+=`<div>Categoría: <b>${mov.categoria}</b></div>`;
+    // Buscar último estado repro (puede ser de un evento 'estado')
+    const ultEstado=movimientos.filter(m=>m.loteId===id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
+    if(ultEstado?.estadoRepro) st+=`<div>Repro: <b>${ultEstado.estadoRepro}</b></div>`;
+    // Contar terneros si hubo partos
+    const partos=movimientos.filter(m=>m.loteId===id&&m.tipo==='parto');
+    if(partos.length){ const t=partos.reduce((s,p)=>s+(p.terneros||0)+(p.terneras||0),0); st+=`<div>Terneros: <b style="color:var(--purple)">${t}</b></div>`; }
+    st+=`<div>Días en lote: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`;
+    st+=`<div>Carga: <b>${(mov.cantidad/lote.ha).toFixed(1)} cab/ha</b></div>`;
+  }
+  else if(estado==='descanso'&&mov){ st+=`<div>Días descansando: <b style="color:var(--amber)">${dDias(mov.fecha)}d</b></div>`; }
   else { st+=`<div style="color:var(--muted)">Sin animales</div>`; }
   document.getElementById('fam-stats').innerHTML=st;
   document.getElementById('fam-mover').disabled=estado!=='ocupado';
@@ -1058,10 +1086,30 @@ window.eliminarLote=async id=>{
 
 // HISTORIAL
 function renderHistorial(){
-  const cl=movimientos.sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
+  const cl=[...movimientos].sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
   const body=document.getElementById('hist-body');
   if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay movimientos registrados aún.</div>`; return; }
-  body.innerHTML=cl.map(m=>{ const lote=lotes.find(l=>l.id===m.loteId), isEnt=m.tipo==='entrada'; return `<div class="mov-card"><div class="mov-icon" style="background:${isEnt?'#14532d':'#7f1d1d'}">${isEnt?'⬇':'⬆'}</div><div class="mov-info"><div class="mov-titulo">${isEnt?`${m.cantidad} ${m.categoria||'animales'} ingresados`:`Retiro${m.motivo?'·'+m.motivo:''}`}</div><div class="mov-sub">${lote?.nombre||'—'}${m.estadoRepro?' · '+m.estadoRepro:''}</div></div><div class="mov-fecha">${m.fecha||'—'}</div></div>`; }).join('');
+  const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'}};
+  body.innerHTML=cl.map(m=>{
+    const lote=lotes.find(l=>l.id===m.loteId);
+    const t=m.tipo||'entrada';
+    const {bg,ic}=iconos[t]||{bg:'#333',ic:'•'};
+    let titulo='', sub='';
+    if(t==='entrada') { titulo=`+${m.cantidadAgregada||m.cantidad||'?'} ${m.categoria||'animales'} ingresados`; sub=`Total: ${m.cantidad} cab${m.estadoRepro?' · '+m.estadoRepro:''}${m.origen?' · '+m.origen:''}`; }
+    else if(t==='mover') { titulo=`Movimiento registrado`; sub=`Quedan ${m.cantidad||0} cab en lote`; }
+    else if(t==='baja') { titulo=`Baja: ${m.cantidadBaja||'?'} ${m.categoria||'animales'}`; sub=`Motivo: ${m.motivo||'—'} · Quedan ${m.cantidad||0} cab${m.rp?' · RP: '+m.rp:''}`; }
+    else if(t==='parto') { titulo=`Parto: ${(m.terneros||0)+(m.terneras||0)} terneros vivos`; sub=`♂${m.terneros||0} ♀${m.terneras||0}${(m.mortM||0)+(m.mortF||0)>0?' · Mortinatos: '+((m.mortM||0)+(m.mortF||0)):''} · ${m.vacasParto||0} vacas`; }
+    else if(t==='estado') { titulo=`Estado: ${m.estadoRepro||'—'}`; sub=`${m.categoria||'Rodeo'}${m.cantidadAfectada?' · '+m.cantidadAfectada+' cab':''}`; }
+    else { titulo=`Retiro${m.motivo?' · '+m.motivo:''}`; sub=`${m.obs||''}`; }
+    return `<div class="mov-card">
+      <div class="mov-icon" style="background:${bg}">${ic}</div>
+      <div class="mov-info">
+        <div class="mov-titulo">${titulo}</div>
+        <div class="mov-sub">${lote?.nombre||'—'} · ${sub}</div>
+      </div>
+      <div class="mov-fecha">${m.fecha||'—'}</div>
+    </div>`;
+  }).join('');
 }
 
 // UTILS
