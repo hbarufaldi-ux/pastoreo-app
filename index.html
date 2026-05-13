@@ -37,6 +37,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sync-dot.syncing{background:var(--amber);animation:blink 1s infinite;}
 .sync-dot.err{background:var(--red);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+/* Botón salir */
+.tb-btn-salir{width:32px;height:32px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;}
+.tb-btn-salir:hover{opacity:0.8;}
 .screen{display:none;flex:1;overflow:hidden;flex-direction:column;}
 .screen.active{display:flex;}
 /* ── PASTOREO ── */
@@ -374,10 +377,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Conectando…</div></div>
 
 <div id="topbar">
-  <!-- Izquierda: logo · campo · sep · leyenda -->
+  <!-- Izquierda: logo · campo · toggle · leyenda -->
   <div class="tb-left">
     <div class="tb-logo">🌿 Pastoreo<span>App</span></div>
     <select class="tb-campo-sel" id="campo-sel" onchange="cambiarCampo(this.value)"></select>
+    <div class="tb-sep"></div>
+    <button class="tb-icon-btn" onclick="togglePanel()" title="Panel lateral">☰</button>
     <div class="tb-sep"></div>
     <div class="tb-legend">
       <div class="tb-leg-item"><div class="tb-leg-dot" style="background:#22c55e"></div><span class="tb-leg-txt">con animales</span></div>
@@ -387,20 +392,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
-  <!-- Centro: navegación -->
-  <div class="tb-nav">
-    <button class="tb-navbtn active" onclick="showScreen('pastoreo',this)">🗺 Pastoreo</button>
-    <button class="tb-navbtn" onclick="showScreen('config',this)">⚙ Config</button>
-    <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Registros</button>
-  </div>
-
-  <!-- Derecha: capas · panel · sync -->
+  <!-- Derecha: nav · sync · salir -->
   <div class="tb-right">
-    <button class="tb-icon-btn active" id="tb-sat" onclick="setLayer('satellite',this)" title="Satélite">🛰</button>
-    <button class="tb-icon-btn" id="tb-osm" onclick="setLayer('osm',this)" title="Callejero">🗺</button>
-    <div class="tb-sep"></div>
-    <button class="tb-icon-btn" onclick="togglePanel()" title="Panel lateral">☰</button>
-    <div class="sync-dot" id="sync-dot"></div>
+    <div class="tb-nav">
+      <button class="tb-navbtn active" onclick="showScreen('pastoreo',this)">🗺 Pastoreo</button>
+      <button class="tb-navbtn" onclick="showScreen('config',this)">⚙ Config</button>
+      <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Registros</button>
+    </div>
+    <div class="sync-dot" id="sync-dot" style="margin:0 6px;"></div>
+    <button class="tb-btn-salir" onclick="confirmarSalir()" title="Salir">⏻</button>
   </div>
 </div>
 
@@ -410,9 +410,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="map"></div>
     <!-- CONTROLES MAPA IZQ -->
     <div style="position:absolute;top:12px;left:12px;z-index:400;display:flex;flex-direction:column;gap:4px;">
-      <button onclick="pastMap.zoomIn()" title="Acercar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">+</button>
-      <button onclick="pastMap.zoomOut()" title="Alejar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">−</button>
-      <button onclick="fitBounds()" title="Ver todos los lotes" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">⤢</button>
+      <button onclick="pastMap.zoomIn()" title="Acercar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">+</button>
+      <button onclick="pastMap.zoomOut()" title="Alejar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">−</button>
+      <button onclick="fitBounds()" title="Ver todos los lotes" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">100%</button>
+      <div style="height:0.5px;background:var(--border);margin:2px 0;"></div>
+      <button id="btn-sat" onclick="setLayer('satellite',this)" title="Satélite" style="background:rgba(59,130,246,0.25);border:0.5px solid var(--blue);color:#93c5fd;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">🛰</button>
+      <button id="btn-osm" onclick="setLayer('osm',this)" title="Callejero" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">🗺</button>
     </div>
     <!-- BARRA MOBILE INFERIOR -->
     <div id="map-controls-mobile" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:400;background:rgba(17,17,19,0.94);border-top:0.5px solid var(--border);padding:8px 14px;gap:8px;align-items:center;backdrop-filter:blur(10px);">
@@ -646,7 +649,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="map-hint" id="map-hint">Tocá un lote para registrar movimiento</div>
   </div>
-  <div id="side-panel">
+  <div id="side-panel" class="collapsed">
     <div id="sp-resizer"></div>
 
     <!-- Vista lista/gantt/resumen -->
@@ -857,7 +860,7 @@ const db = initializeFirestore(initializeApp({
 
 let campos=[], lotes=[], movimientos=[];
 let campoActivoId=null, loteSelId=null, spTab='lista', cfgTab='campos';
-let tenenciaCampo='propio', tenenciaLote='propio', loteColor='#3b82f6', panelOpen=true;
+let tenenciaCampo='propio', tenenciaLote='propio', loteColor='#3b82f6', panelOpen=false;
 let drawing=false, drawPts=[], drawMarkers=[], drawPolyline=null, drawPolygon=null, pendingCoords=null;
 
 const COLORS=['#3b82f6','#22c55e','#f97316','#f59e0b','#a855f7','#ef4444','#14b8a6','#ec4899'];
@@ -940,6 +943,11 @@ window.showScreen=(name,btn)=>{
   document.getElementById('sc-'+name).classList.add('active');
   document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  // Abrir panel al navegar (excepto pastoreo donde queda cerrado hasta elegir lote)
+  if(name==='config'||name==='historial'){
+    panelOpen=true;
+    document.getElementById('side-panel').classList.remove('collapsed');
+  }
   if(name==='pastoreo') setTimeout(()=>pastMap.invalidateSize(),50);
   if(name==='config')   setTimeout(()=>cfgMap.invalidateSize(),50);
 };
@@ -961,10 +969,12 @@ window.setLayer=(name,btn)=>{
   pastMap.removeLayer(pastTile);
   pastTile=name==='satellite'?mkSat():mkOSM();
   pastTile.addTo(pastMap);
-  document.querySelectorAll('#tb-sat,#tb-osm').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  else{ const id=name==='satellite'?'tb-sat':'tb-osm'; const el=document.getElementById(id); if(el) el.classList.add('active'); }
+  const sat=document.getElementById('btn-sat');
+  const osm=document.getElementById('btn-osm');
+  if(sat){ sat.style.background=name==='satellite'?'rgba(59,130,246,0.25)':'rgba(17,17,19,0.92)'; sat.style.borderColor=name==='satellite'?'var(--blue)':'var(--border)'; sat.style.color=name==='satellite'?'#93c5fd':'var(--muted)'; }
+  if(osm){ osm.style.background=name==='osm'?'rgba(59,130,246,0.25)':'rgba(17,17,19,0.92)'; osm.style.borderColor=name==='osm'?'var(--blue)':'var(--border)'; osm.style.color=name==='osm'?'#93c5fd':'var(--muted)'; }
 };
+window.confirmarSalir=()=>{ if(confirm('¿Cerrar la aplicación?')) window.close(); };
 window.togglePanel=()=>{ panelOpen=!panelOpen; document.getElementById('side-panel').classList.toggle('collapsed',!panelOpen); setTimeout(()=>pastMap.invalidateSize(),260); };
 
 // Panel resizable
@@ -1108,6 +1118,8 @@ function resolverColisionesChips(){
 window._cc=id=>selectLote(id);
 
 function selectLote(id){
+  // Abrir panel si está cerrado
+  if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
   // Cerrar card anterior
   document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
