@@ -1066,7 +1066,6 @@ function renderMapLotes(){
     }),interactive:false}).addTo(pastMap);
     // Guardar ambos htmls en el marcador para poder cambiar sin recrear
     m._labelHtml = labelHtml;
-    m._chipHtml  = chipHtml;
     chipMarkers[lote.id]=m;
   });
   if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60],animate:false});
