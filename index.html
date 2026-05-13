@@ -1067,16 +1067,17 @@ function renderMapLotes(){
         <div class="chip-total amber">Descansando</div>
         <div class="chip-dias amber">${d}d</div>`;
     }
-    // Punto de anclaje: centro del polígono
-    const topCenter = poly.getBounds().getCenter();
+    // Punto de anclaje: borde superior del polígono
+    const bounds2 = poly.getBounds();
+    const topCenter = L.latLng(bounds2.getNorth(), (bounds2.getWest()+bounds2.getEast())/2);
 
     const z = pastMap.getZoom();
     const chipOpacity = z >= ZOOM_CHIPS ? '1' : '0';
     const ptrEvents = z >= ZOOM_CHIPS ? 'auto' : 'none';
 
     // HTML según nivel de zoom inicial
-    const labelHtml = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-50%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
-    const chipHtml  = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-50%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
+    const labelHtml = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
+    const chipHtml  = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
 
     const useFullChip = z >= ZOOM_CHIP_FULL;
     const m=L.marker(topCenter,{icon:L.divIcon({
@@ -1162,6 +1163,18 @@ function resolverColisionesChips(){
 }
 window._cc=id=>selectLote(id);
 
+function showPanelView(name){
+  const views={
+    'main': document.getElementById('sp-main-view'),
+    'hist': document.getElementById('sp-hist-view'),
+    'form': document.getElementById('sp-form-view'),
+  };
+  Object.entries(views).forEach(([k,el])=>{
+    if(!el) return;
+    el.style.display = k===name ? 'flex' : 'none';
+  });
+}
+
 function selectLote(id){
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
   showPanelView('main');
@@ -1187,6 +1200,7 @@ function updateChipForLote(id, selected){
   const lote = lotes.find(l=>l.id===id);
   if(!lote) return;
   if(selected){
+    // Mostrar chip completo (sin click)
     const mov=lastMov(id);
     const estadoReal=getEstadoReal(lote,mov);
     const cantText=mov?.cantidad===1?'1 animal':`${mov?.cantidad||0} animales`;
@@ -1204,13 +1218,11 @@ function updateChipForLote(id, selected){
       const d=mov?dDias(mov.fecha):0;
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div><div class="chip-total amber">Descansando</div><div class="chip-dias amber">${d}d</div>`;
     }
-    // Chip siempre visible sin importar zoom, centrado, sin pointer events
-    const chipHtml=`<div class="lote-chip ${estadoReal}" style="cursor:default;position:absolute;transform:translate(-50%,-50%);opacity:1;pointer-events:none;">${chipInner}</div>`;
+    const chipHtml=`<div class="lote-chip ${estadoReal} selected-chip" style="cursor:default;position:absolute;transform:translate(-50%,-100%);transition:opacity 0.2s">${chipInner}</div>`;
     m.setIcon(L.divIcon({className:'',html:chipHtml,iconSize:[0,0],iconAnchor:[0,0]}));
   } else {
-    // Volver a label normal según zoom actual
+    // Volver a label normal
     if(m._labelHtml) m.setIcon(L.divIcon({className:'',html:m._labelHtml,iconSize:[0,0],iconAnchor:[0,0]}));
-    updateChipVisibility(pastMap.getZoom());
   }
 }
 
