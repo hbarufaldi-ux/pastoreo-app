@@ -896,16 +896,14 @@ const mkOSM=()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 let pastTile=mkSat(); pastTile.addTo(pastMap);
 mkSat().addTo(cfgMap);
 // Ocultar/mostrar chips según zoom
-const ZOOM_CHIPS = 13; // zoom mínimo para mostrar chips
+const ZOOM_CHIPS = 14;
+const ZOOM_CHIP_FULL = 15;
 pastMap.on('zoomend', ()=>{
   const z = pastMap.getZoom();
   const lbl = document.getElementById('btn-zoom-lbl');
   if(lbl) lbl.textContent = z;
-  Object.values(chipMarkers).forEach(m=>{
-    const el = m.getElement()?.querySelector('.lote-chip');
-    if(el){ el.style.opacity = z >= ZOOM_CHIPS ? '1' : '0'; el.style.pointerEvents = z >= ZOOM_CHIPS ? 'auto' : 'none'; }
-  });
-  if(z >= ZOOM_CHIPS) setTimeout(resolverColisionesChips, 150);
+  updateChipVisibility(z);
+  if(z >= ZOOM_CHIP_FULL) setTimeout(resolverColisionesChips, 150);
 });
 pastMap.on('click',()=>{
   closeFam();
@@ -1087,33 +1085,70 @@ function renderMapLotes(){
         <div class="chip-total amber">Descansando</div>
         <div class="chip-dias amber">${d}d</div>`;
     }
-    const chipOpacity = pastMap.getZoom() >= ZOOM_CHIPS ? '1' : '0';
-    const m=L.marker(center,{icon:L.divIcon({
+    // Punto de anclaje: borde superior del polígono
+    const bounds2 = poly.getBounds();
+    const topCenter = L.latLng(bounds2.getNorth(), (bounds2.getWest()+bounds2.getEast())/2);
+
+    const z = pastMap.getZoom();
+    const chipOpacity = z >= ZOOM_CHIPS ? '1' : '0';
+    const ptrEvents = z >= ZOOM_CHIPS ? 'auto' : 'none';
+
+    // HTML según nivel de zoom inicial
+    const labelHtml = `<div class="lote-label" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:${ptrEvents};transition:opacity 0.2s">${lote.nombre}</div>`;
+    const chipHtml  = `<div class="lote-chip ${estadoReal}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-100%);opacity:${chipOpacity};pointer-events:${ptrEvents};transition:opacity 0.2s">${chipInner}</div>`;
+
+    const useFullChip = z >= ZOOM_CHIP_FULL;
+    const m=L.marker(topCenter,{icon:L.divIcon({
       className:'',
-      html:`<div class="lote-chip ${estadoReal}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-50%);opacity:${chipOpacity};transition:opacity 0.2s">${chipInner}</div>`,
+      html: useFullChip ? chipHtml : labelHtml,
       iconSize:[0,0],
       iconAnchor:[0,0]
     }),interactive:true}).addTo(pastMap);
     m.on('click', e=>{ L.DomEvent.stopPropagation(e); selectLote(lote.id); });
+    // Guardar ambos htmls en el marcador para poder cambiar sin recrear
+    m._labelHtml = labelHtml;
+    m._chipHtml  = chipHtml;
     chipMarkers[lote.id]=m;
   });
-  if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60]});
-  // Detectar colisiones entre chips después de un pequeño delay
-  setTimeout(resolverColisionesChips, 300);
+  if(bounds.length) pastMap.fitBounds(bounds,{padding:[60,60],animate:false});
+  setTimeout(()=>{ updateChipVisibility(pastMap.getZoom()); if(pastMap.getZoom()>=ZOOM_CHIP_FULL) resolverColisionesChips(); }, 300);
+}
+
+function updateChipVisibility(z){
+  Object.values(chipMarkers).forEach(m=>{
+    const el = m.getElement()?.firstElementChild;
+    if(!el) return;
+    if(z < ZOOM_CHIPS){
+      // Ocultar todo
+      el.style.opacity='0'; el.style.pointerEvents='none';
+    } else if(z < ZOOM_CHIP_FULL){
+      // Solo nombre — cambiar a label si era chip
+      if(el.classList.contains('lote-chip') && m._labelHtml){
+        m.setIcon(L.divIcon({className:'',html:m._labelHtml,iconSize:[0,0],iconAnchor:[0,0]}));
+      }
+      const el2 = m.getElement()?.firstElementChild;
+      if(el2){ el2.style.opacity='1'; el2.style.pointerEvents='auto'; }
+    } else {
+      // Chip completo
+      if(!m.getElement()?.firstElementChild?.classList.contains('lote-chip') && m._chipHtml){
+        m.setIcon(L.divIcon({className:'',html:m._chipHtml,iconSize:[0,0],iconAnchor:[0,0]}));
+      }
+      const el2 = m.getElement()?.firstElementChild;
+      if(el2){ el2.style.opacity='1'; el2.style.pointerEvents='auto'; }
+    }
+  });
 }
 
 function resolverColisionesChips(){
   const markers = Object.values(chipMarkers);
-  // Reset posiciones primero
   markers.forEach(m=>{
-    const el = m.getElement()?.querySelector('.lote-chip');
-    if(el){ el.style.transform='translate(-50%,-50%)'; }
+    const el = m.getElement()?.firstElementChild;
+    if(el){ el.style.transform='translate(-50%,-100%)'; }
   });
-  // Detectar y desplazar
   const items = markers.map(m=>{
-    const el = m.getElement()?.querySelector('.lote-chip');
+    const el = m.getElement()?.firstElementChild;
     if(!el) return null;
-    return {el, r:el.getBoundingClientRect(), dx:0, dy:0};
+    return {el, dx:0, dy:0};
   }).filter(Boolean);
 
   const MAX_ITER = 5;
@@ -1127,7 +1162,6 @@ function resolverColisionesChips(){
         const overlapX = a.right+pad > b.left && b.right+pad > a.left;
         const overlapY = a.bottom+pad > b.top && b.bottom+pad > a.top;
         if(overlapX && overlapY){
-          // Calcular dirección de desplazamiento
           const cx=(a.left+a.right)/2, cy=(a.top+a.bottom)/2;
           const dx2=(b.left+b.right)/2, dy2=(b.top+b.bottom)/2;
           const angle=Math.atan2(dy2-cy, dx2-cx);
@@ -1136,9 +1170,8 @@ function resolverColisionesChips(){
           items[j].dy+=Math.sin(angle)*push;
           items[i].dx-=Math.cos(angle)*push/2;
           items[i].dy-=Math.sin(angle)*push/2;
-          // Aplicar
-          items[j].el.style.transform=`translate(calc(-50% + ${items[j].dx}px), calc(-50% + ${items[j].dy}px))`;
-          items[i].el.style.transform=`translate(calc(-50% + ${items[i].dx}px), calc(-50% + ${items[i].dy}px))`;
+          items[j].el.style.transform=`translate(calc(-50% + ${items[j].dx}px), calc(-100% + ${items[j].dy}px))`;
+          items[i].el.style.transform=`translate(calc(-50% + ${items[i].dx}px), calc(-100% + ${items[i].dy}px))`;
           moved=true;
         }
       }
@@ -1160,7 +1193,7 @@ function selectLote(id){
   loteSelId=id;
   const lote=lotes.find(l=>l.id===id); if(!lote) return;
   const poly=pastLayers[id];
-  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.flyToBounds(poly.getBounds(),{padding:[80,80],duration:0.55,maxZoom:17}); }
+  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.fitBounds(poly.getBounds(),{padding:[80,80],animate:false}); }
   const estado=lote.estado||'libre', color=EC[estado];
   // Header
   document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
