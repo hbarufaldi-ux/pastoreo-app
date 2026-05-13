@@ -13,13 +13,25 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{height:52px;background:rgba(17,17,19,0.97);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:500;}
-.tb-logo{font-size:15px;font-weight:800;}.tb-logo span{color:var(--green);}
-.tb-nav{display:flex;gap:2px;}
-.tb-navbtn{background:transparent;border:none;color:var(--muted);font-size:13px;padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:500;}
-.tb-navbtn.active{background:var(--surface2);color:var(--text);font-weight:700;}
-.tb-right{display:flex;align-items:center;gap:8px;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+#topbar{height:48px;background:rgba(17,17,19,0.97);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0;z-index:500;gap:8px;}
+.tb-left{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tb-logo{font-size:14px;font-weight:700;white-space:nowrap;}.tb-logo span{color:var(--green);}
+.tb-campo-sel{background:var(--surface2);border:0.5px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:4px 8px;outline:none;cursor:pointer;-webkit-appearance:none;max-width:130px;}
+.tb-nav{display:flex;gap:2px;flex-shrink:0;}
+.tb-navbtn{background:transparent;border:none;color:var(--muted);font-size:12px;padding:6px 11px;border-radius:7px;cursor:pointer;font-weight:500;white-space:nowrap;}
+.tb-navbtn.active{background:var(--surface2);color:var(--text);font-weight:600;}
+.tb-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.tb-icon-btn{background:transparent;border:none;color:var(--muted);font-size:13px;padding:5px 7px;border-radius:7px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.tb-icon-btn:hover{background:var(--surface2);color:var(--text);}
+.tb-icon-btn.active{background:var(--surface2);color:var(--text);}
+.tb-sep{width:0.5px;height:20px;background:var(--border);margin:0 2px;}
+.tb-legend{display:flex;align-items:center;gap:4px;}
+.tb-leg-dot{width:8px;height:8px;border-radius:50%;cursor:pointer;transition:transform .1s;}
+.tb-leg-dot:hover{transform:scale(1.3);}
+.tb-zoom{display:flex;align-items:center;gap:1px;}
+.tb-zoom-btn{background:var(--surface2);border:0.5px solid var(--border);color:var(--text);width:24px;height:24px;border-radius:5px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;}
+.tb-zoom-btn:hover{background:var(--surface3);}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
 .sync-dot.syncing{background:var(--amber);animation:blink 1s infinite;}
 .sync-dot.err{background:var(--red);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
@@ -168,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #legend h4{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
 .leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;color:#ccc;}
 .leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
-.map-hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(17,17,19,0.88);color:#ccc;font-size:12px;padding:7px 16px;border-radius:20px;backdrop-filter:blur(8px);pointer-events:none;white-space:nowrap;transition:opacity .3s;}
+.map-hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(17,17,19,0.88);color:#ccc;font-size:12px;padding:7px 16px;border-radius:20px;backdrop-filter:blur(8px);pointer-events:none;white-space:nowrap;transition:opacity .3s;}
 .lr{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;margin-bottom:3px;cursor:pointer;transition:background .12s;border:0.5px solid transparent;}
 .lr:hover{background:var(--surface2);}
 .lr.sel{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);}
@@ -224,14 +236,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .li-del{background:var(--surface3);border:none;color:var(--muted);padding:3px 7px;border-radius:6px;font-size:11px;cursor:pointer;}
 .li-del:hover{color:var(--red);}
 /* ── HISTORIAL ── */
-#sc-historial{overflow-y:auto;padding:16px;}
-.hist-title{font-size:16px;font-weight:800;margin-bottom:14px;}
-.mov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:12px;}
-.mov-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+#sc-historial{display:flex;flex-direction:column;overflow:hidden;}
+.hist-filters{padding:12px 16px;border-bottom:0.5px solid var(--border);flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.hist-filter-sel{background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;outline:none;cursor:pointer;-webkit-appearance:none;}
+.hist-filter-sel:focus{border-color:var(--blue);}
+.hist-filter-reset{background:transparent;border:0.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 10px;cursor:pointer;}
+.hist-filter-reset:hover{color:var(--text);}
+.hist-count{font-size:11px;color:var(--muted);margin-left:auto;}
+.hist-list{flex:1;overflow-y:auto;padding:10px 16px;}
+.mov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .12s;}
+.mov-card:hover{background:var(--surface2);}
+.mov-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .mov-info{flex:1;min-width:0;}
-.mov-titulo{font-size:13px;font-weight:700;}
-.mov-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.mov-fecha{font-size:11px;color:var(--muted);white-space:nowrap;}
+.mov-titulo{font-size:12px;font-weight:500;color:#f0f0f0;}
+.mov-sub{font-size:11px;color:#777;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mov-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.mov-fecha{font-size:11px;color:#555;}
+.mov-lote{font-size:10px;font-weight:500;padding:2px 7px;border-radius:8px;background:var(--surface2);color:#777;}
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;}
 .modal{background:var(--surface);border-radius:18px;border:0.5px solid var(--border);width:100%;max-width:420px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6);}
@@ -280,9 +301,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #legend{display:none;}
 
   /* topbar mobile */
-  #topbar{padding:0 10px;height:48px;}
-  .tb-logo{font-size:13px;}
-  .tb-navbtn{font-size:11px;padding:5px 8px;}
+  #topbar{padding:0 8px;height:44px;}
+  .tb-logo{font-size:12px;}
+  .tb-navbtn{font-size:10px;padding:4px 7px;}
+  .tb-campo-sel{display:none;}
+  .tb-sep{display:none;}
+  .tb-legend{display:none;}
+  .tb-zoom{display:none;}
+  #tb-sat,#tb-osm{display:none;}
 
   /* selector de campo — moverlo al topbar, ocultar en mapa */
   #campo-sel-wrap{display:none !important;}
@@ -347,30 +373,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Conectando…</div></div>
 
 <div id="topbar">
-  <div class="tb-logo">🌿 Pastoreo<span>App</span></div>
+  <!-- Izquierda -->
+  <div class="tb-left">
+    <div class="tb-logo">🌿 Pastoreo<span>App</span></div>
+    <select class="tb-campo-sel" id="campo-sel" onchange="cambiarCampo(this.value)"></select>
+  </div>
+
+  <!-- Centro -->
   <div class="tb-nav">
     <button class="tb-navbtn active" onclick="showScreen('pastoreo',this)">🗺 Pastoreo</button>
     <button class="tb-navbtn" onclick="showScreen('config',this)">⚙ Config</button>
-    <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Historial</button>
+    <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Registros</button>
   </div>
-  <div class="tb-right"><div class="sync-dot" id="sync-dot"></div></div>
+
+  <!-- Derecha -->
+  <div class="tb-right">
+    <!-- Capas -->
+    <button class="tb-icon-btn active" id="tb-sat" onclick="setLayer('satellite',this)" title="Satélite">🛰</button>
+    <button class="tb-icon-btn" id="tb-osm" onclick="setLayer('osm',this)" title="Callejero">🗺</button>
+    <div class="tb-sep"></div>
+    <!-- Leyenda -->
+    <div class="tb-legend" title="Con animales · Descansando · Sembrado · Listo">
+      <div class="tb-leg-dot" style="background:#22c55e" title="Con animales"></div>
+      <div class="tb-leg-dot" style="background:#f59e0b" title="Descansando"></div>
+      <div class="tb-leg-dot" style="background:#a855f7" title="Sembrado"></div>
+      <div class="tb-leg-dot" style="background:#3b82f6" title="Listo"></div>
+    </div>
+    <div class="tb-sep"></div>
+    <!-- Zoom -->
+    <div class="tb-zoom">
+      <button class="tb-zoom-btn" onclick="pastMap.zoomIn()" title="Acercar">+</button>
+      <button class="tb-zoom-btn" onclick="pastMap.zoomOut()" title="Alejar">−</button>
+    </div>
+    <div class="tb-sep"></div>
+    <!-- Panel -->
+    <button class="tb-icon-btn" onclick="togglePanel()" title="Panel">☰</button>
+    <div class="sync-dot" id="sync-dot"></div>
+  </div>
 </div>
 
 <!-- ══ PASTOREO ══ -->
 <div class="screen active" id="sc-pastoreo">
   <div id="map-wrap">
     <div id="map"></div>
-    <div style="position:absolute;top:12px;left:12px;z-index:400;display:flex;gap:6px;align-items:center;" id="campo-sel-wrap">
-      <select id="campo-sel" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;padding:7px 12px;outline:none;cursor:pointer;backdrop-filter:blur(8px);-webkit-appearance:none;" onchange="cambiarCampo(this.value)"></select>
-      <button class="mt-btn" onclick="setLayer('satellite')">🛰</button>
-      <button class="mt-btn" onclick="setLayer('osm')">🗺</button>
-      <button class="mt-btn" id="panel-toggle-btn" onclick="togglePanel()">☰</button>
-    </div>
     <!-- BARRA MOBILE INFERIOR -->
-    <div id="map-controls-mobile" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:400;background:rgba(17,17,19,0.94);border-top:0.5px solid var(--border);padding:10px 16px;gap:10px;align-items:center;backdrop-filter:blur(10px);">
-      <select id="campo-sel-mobile" style="flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-weight:600;padding:9px 12px;outline:none;-webkit-appearance:none;" onchange="cambiarCampo(this.value)"></select>
-      <button class="mt-btn" onclick="setLayer('satellite')" style="padding:9px 14px;">🛰</button>
-      <button class="mt-btn" onclick="setLayer('osm')" style="padding:9px 14px;">🗺</button>
+    <div id="map-controls-mobile" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:400;background:rgba(17,17,19,0.94);border-top:0.5px solid var(--border);padding:8px 14px;gap:8px;align-items:center;backdrop-filter:blur(10px);">
+      <select id="campo-sel-mobile" style="flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;padding:8px 11px;outline:none;-webkit-appearance:none;" onchange="cambiarCampo(this.value)"></select>
     </div>
     <div id="fam">
       <div id="fam-handle"></div>
@@ -597,7 +645,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
       </div>
     </div>
-    <div id="legend"><h4>Estado lotes</h4><div class="leg-row"><div class="leg-dot" style="background:var(--green)"></div>Con animales</div><div class="leg-row"><div class="leg-dot" style="background:var(--amber)"></div>Descansando</div><div class="leg-row"><div class="leg-dot" style="background:var(--blue)"></div>Libre</div><div class="leg-row"><div class="leg-dot" style="background:var(--purple)"></div>Reservado</div></div>
+
     <div class="map-hint" id="map-hint">Tocá un lote para registrar movimiento</div>
   </div>
   <div id="side-panel">
@@ -688,10 +736,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- ══ HISTORIAL ══ -->
+<!-- ══ REGISTROS ══ -->
 <div class="screen" id="sc-historial">
-  <div class="hist-title">📋 Historial de movimientos</div>
-  <div id="hist-body"></div>
+  <div class="hist-filters">
+    <select class="hist-filter-sel" id="f-hist-lote" onchange="renderHistorial()">
+      <option value="">Todos los lotes</option>
+    </select>
+    <select class="hist-filter-sel" id="f-hist-tipo" onchange="renderHistorial()">
+      <option value="">Todos los eventos</option>
+      <option value="entrada">Ingreso animales</option>
+      <option value="salida">Retiro animales</option>
+      <option value="mover">Movimiento</option>
+      <option value="baja">Baja</option>
+      <option value="parto">Parto</option>
+      <option value="estado">Estado repro</option>
+      <option value="siembra">Siembra</option>
+      <option value="segado">Segado</option>
+      <option value="enrollado">Enrollado</option>
+      <option value="cosechar">Cosecha</option>
+    </select>
+    <select class="hist-filter-sel" id="f-hist-periodo" onchange="renderHistorial()">
+      <option value="">Todo el tiempo</option>
+      <option value="7">Últimos 7 días</option>
+      <option value="30">Últimos 30 días</option>
+      <option value="90">Últimos 90 días</option>
+    </select>
+    <button class="hist-filter-reset" onclick="resetFiltros()">✕ Limpiar</button>
+    <span class="hist-count" id="hist-count"></span>
+  </div>
+  <div class="hist-list" id="hist-body"></div>
 </div>
 
 <!-- MODAL CAMPO -->
@@ -790,11 +863,11 @@ let tenenciaCampo='propio', tenenciaLote='propio', loteColor='#3b82f6', panelOpe
 let drawing=false, drawPts=[], drawMarkers=[], drawPolyline=null, drawPolygon=null, pendingCoords=null;
 
 const COLORS=['#3b82f6','#22c55e','#f97316','#f59e0b','#a855f7','#ef4444','#14b8a6','#ec4899'];
-const EC={ocupado:'#22c55e',descanso:'#f59e0b',listo:'#3b82f6',libre:'#f59e0b'};
-const EL={ocupado:'Con animales',descanso:'Descansando',listo:'Listo',libre:'Descansando'};
+const EC={ocupado:'#22c55e',descanso:'#f59e0b',sembrado:'#a855f7',listo:'#3b82f6',libre:'#f59e0b'};
+const EL={ocupado:'Con animales',descanso:'Descansando',sembrado:'Sembrado',listo:'Listo',libre:'Descansando'};
 
 // MAPS
-const pastMap=L.map('map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
+const pastMap=L.map('map',{zoomControl:false,attributionControl:false}).setView([-33.005,-63.463],14);
 const cfgMap =L.map('cfg-map',{zoomControl:true,attributionControl:false}).setView([-33.005,-63.463],14);
 const DIAS_CULTIVO={
   'Alfalfa':28,'Alfalfa/verdeo':25,'Pastura natural':21,
@@ -804,8 +877,10 @@ const DIAS_CULTIVO={
 function getEstadoReal(lote, mov){
   const estado = lote.estado||'descanso';
   if(estado==='ocupado') return 'ocupado';
+  if(estado==='sembrado') return 'sembrado';
   // Calcular si está listo
-  const diasDesc = mov ? dDias(mov.fecha) : 0;
+  const fechaRef = lote.fechaDescanso || lote.fechaSiembra || mov?.fecha;
+  const diasDesc = fechaRef ? dDias(fechaRef) : 0;
   const diasMin = lote.diasDescanso || DIAS_CULTIVO[lote.cultivo] || 21;
   if(diasDesc >= diasMin) return 'listo';
   return 'descanso';
@@ -865,10 +940,10 @@ window.showScreen=(name,btn)=>{
 
 function renderCampoSel(){
   const html=campos.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
-  const s=document.getElementById('campo-sel');
-  s.innerHTML=html; if(campoActivoId) s.value=campoActivoId;
-  const sm=document.getElementById('campo-sel-mobile');
-  if(sm){ sm.innerHTML=html; if(campoActivoId) sm.value=campoActivoId; }
+  ['campo-sel','campo-sel-mobile'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.innerHTML=html; if(campoActivoId) el.value=campoActivoId; }
+  });
 }
 window.cambiarCampo=id=>{
   campoActivoId=id;
@@ -876,7 +951,14 @@ window.cambiarCampo=id=>{
   const sm=document.getElementById('campo-sel-mobile'); if(sm) sm.value=id;
   renderMapLotes(); renderPanel();
 };
-window.setLayer=name=>{ pastMap.removeLayer(pastTile); pastTile=name==='satellite'?mkSat():mkOSM(); pastTile.addTo(pastMap); };
+window.setLayer=(name,btn)=>{
+  pastMap.removeLayer(pastTile);
+  pastTile=name==='satellite'?mkSat():mkOSM();
+  pastTile.addTo(pastMap);
+  document.querySelectorAll('#tb-sat,#tb-osm').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  else{ const id=name==='satellite'?'tb-sat':'tb-osm'; const el=document.getElementById(id); if(el) el.classList.add('active'); }
+};
 window.togglePanel=()=>{ panelOpen=!panelOpen; document.getElementById('side-panel').classList.toggle('collapsed',!panelOpen); setTimeout(()=>pastMap.invalidateSize(),260); };
 
 // Panel resizable
@@ -942,11 +1024,16 @@ function renderMapLotes(){
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
         <div class="chip-total green">${cantText}</div>
         <div class="chip-dias green">${d}d en lote</div>`;
+    } else if(estadoReal==='sembrado'){
+      const d=lote.fechaSiembra?dDias(lote.fechaSiembra):mov?dDias(mov.fecha):0;
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
+        <div class="chip-total" style="color:#a855f7">Sembrado</div>
+        <div class="chip-dias" style="color:#a855f7">${d}d desarrollo</div>`;
     } else if(estadoReal==='listo'){
-      const d=mov?dDias(mov.fecha):0;
+      const d=lote.fechaDescanso?dDias(lote.fechaDescanso):mov?dDias(mov.fecha):0;
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
         <div class="chip-total blue">Listo ✓</div>
-        <div class="chip-dias blue">${d}d descansando</div>`;
+        <div class="chip-dias blue">${d}d</div>`;
     } else {
       const d=mov?dDias(mov.fecha):0;
       chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div>
@@ -1373,10 +1460,9 @@ window.confirmar=async tipo=>{
         obs:document.getElementById('f-obs-siembra').value,
         creadoEn:new Date().toISOString()
       });
-      if(cultivo){
-        await updateDoc(doc(db,'lotes',lote.id),{cultivo});
-        const idxS=lotes.findIndex(l=>l.id===lote.id); if(idxS>=0) lotes[idxS].cultivo=cultivo;
-      }
+      await updateDoc(doc(db,'lotes',lote.id),{estado:'sembrado',fechaSiembra:fecha,cultivo:cultivo||lote.cultivo});
+      const idxS=lotes.findIndex(l=>l.id===lote.id);
+      if(idxS>=0){ lotes[idxS].estado='sembrado'; lotes[idxS].fechaSiembra=fecha; if(cultivo) lotes[idxS].cultivo=cultivo; }
       movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'siembra',fecha,cultivo,creadoEn:new Date().toISOString()});
       showToast(`🌱 Siembra registrada en ${lote.nombre}`);
 
@@ -1657,36 +1743,78 @@ window.eliminarLote=async id=>{
 };
 
 // HISTORIAL
+function getTituloSub(m){
+  const t=m.tipo||'entrada';
+  let titulo='',sub='';
+  if(t==='entrada'){titulo=`+${m.cantidadAgregada||m.cantidad||'?'} ${m.categoria||'animales'} ingresados`;sub=`Total: ${m.cantidad} cab${m.estadoRepro?' · '+m.estadoRepro:''}${m.origen?' · '+m.origen:''}`;}
+  else if(t==='salida'){titulo=`Retiro${m.motivo?' · '+m.motivo:''}`;sub=m.obs||'';}
+  else if(t==='mover'){titulo=`Movimiento`;sub=`Quedan ${m.cantidad||0} cab en lote`;}
+  else if(t==='baja'){titulo=`Baja: ${m.cantidadBaja||'?'} ${m.categoria||'animales'}`;sub=`${m.motivo||'—'} · Quedan ${m.cantidad||0} cab${m.rp?' · RP: '+m.rp:''}`;}
+  else if(t==='parto'){titulo=`Parto: ${(m.terneros||0)+(m.terneras||0)} terneros vivos`;sub=`♂${m.terneros||0} ♀${m.terneras||0}${(m.mortM||0)+(m.mortF||0)>0?' · '+((m.mortM||0)+(m.mortF||0))+' mortinatos':''}`;}
+  else if(t==='estado'){titulo=`Estado: ${m.estadoRepro||'—'}`;sub=`${m.categoria||'Rodeo'}${m.cantidadAfectada?' · '+m.cantidadAfectada+' cab':''}`;}
+  else if(t==='siembra'){titulo=`Siembra: ${m.cultivo||'—'}`;sub=`${m.semillaKgHa?m.semillaKgHa+'kg/ha · ':''}${m.tractorista||''}${m.equipo?' · '+m.equipo:''}`;}
+  else if(t==='segado'){titulo=`Segado`;sub=`${m.maquinista||'—'}${m.precioHa?' · $'+m.precioHa+'/ha':''}`;}
+  else if(t==='enrollado'){titulo=`Enrollado: ${m.rollos||0} rollos`;sub=`${m.maquinista||'—'}${m.precioRollo?' · $'+m.precioRollo+'/rollo':''}`;}
+  else if(t==='cosechar'){titulo=`Cosecha`;sub=`Inicia descanso${m.obs?' · '+m.obs:''}`;}
+  return {titulo,sub};
+}
+
 function renderHistorial(){
-  const cl=[...movimientos].sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
-  const body=document.getElementById('hist-body');
-  if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay movimientos registrados aún.</div>`; return; }
   const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'},cosechar:{bg:'#0f766e',ic:'🌾'},siembra:{bg:'#365314',ic:'🌱'},segado:{bg:'#0f766e',ic:'✂'},enrollado:{bg:'#0f766e',ic:'🌾'}};
+
+  // Actualizar filtro de lotes
+  const lotesSel=document.getElementById('f-hist-lote');
+  if(lotesSel&&lotesSel.options.length<=1){
+    lotes.forEach(l=>{ const o=document.createElement('option'); o.value=l.id; o.textContent=l.nombre; lotesSel.appendChild(o); });
+  }
+
+  // Aplicar filtros
+  const filtLote=document.getElementById('f-hist-lote')?.value||'';
+  const filtTipo=document.getElementById('f-hist-tipo')?.value||'';
+  const filtPeriodo=document.getElementById('f-hist-periodo')?.value||'';
+
+  let cl=[...movimientos].sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
+  if(filtLote) cl=cl.filter(m=>m.loteId===filtLote);
+  if(filtTipo) cl=cl.filter(m=>m.tipo===filtTipo);
+  if(filtPeriodo){
+    const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-Number(filtPeriodo));
+    cl=cl.filter(m=>m.fecha&&new Date(m.fecha+'T00:00:00')>=cutoff);
+  }
+
+  const body=document.getElementById('hist-body');
+  const countEl=document.getElementById('hist-count');
+  if(countEl) countEl.textContent=`${cl.length} registro${cl.length!==1?'s':''}`;
+
+  if(!cl.length){
+    body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay registros${filtLote||filtTipo||filtPeriodo?' con estos filtros':' aún'}.</div>`;
+    return;
+  }
+
   body.innerHTML=cl.map(m=>{
     const lote=lotes.find(l=>l.id===m.loteId);
     const t=m.tipo||'entrada';
     const {bg,ic}=iconos[t]||{bg:'#333',ic:'•'};
-    let titulo='', sub='';
-    if(t==='entrada') { titulo=`+${m.cantidadAgregada||m.cantidad||'?'} ${m.categoria||'animales'} ingresados`; sub=`Total: ${m.cantidad} cab${m.estadoRepro?' · '+m.estadoRepro:''}${m.origen?' · '+m.origen:''}`; }
-    else if(t==='mover') { titulo=`Movimiento registrado`; sub=`Quedan ${m.cantidad||0} cab en lote`; }
-    else if(t==='baja') { titulo=`Baja: ${m.cantidadBaja||'?'} ${m.categoria||'animales'}`; sub=`Motivo: ${m.motivo||'—'} · Quedan ${m.cantidad||0} cab${m.rp?' · RP: '+m.rp:''}`; }
-    else if(t==='parto') { titulo=`Parto: ${(m.terneros||0)+(m.terneras||0)} terneros vivos`; sub=`♂${m.terneros||0} ♀${m.terneras||0}${(m.mortM||0)+(m.mortF||0)>0?' · Mortinatos: '+((m.mortM||0)+(m.mortF||0)):''} · ${m.vacasParto||0} vacas`; }
-    else if(t==='estado') { titulo=`Estado: ${m.estadoRepro||'—'}`; sub=`${m.categoria||'Rodeo'}${m.cantidadAfectada?' · '+m.cantidadAfectada+' cab':''}`; }
-    else if(t==='cosechar') { titulo=`Cosecha: ${m.tipoCosecha||'—'}`; sub=`Inicia descanso${m.obs?' · '+m.obs:''}`; }
-    else if(t==='siembra') { titulo=`Siembra: ${m.cultivo||'—'}`; sub=`${m.semillaKgHa?m.semillaKgHa+'kg/ha · ':''}${m.tractorista||''}${m.equipo?' · '+m.equipo:''}`; }
-    else if(t==='segado') { titulo=`Segado`; sub=`${m.maquinista||'—'}${m.precioHa?' · $'+m.precioHa+'/ha':''}`; }
-    else if(t==='enrollado') { titulo=`Enrollado: ${m.rollos||0} rollos`; sub=`${m.maquinista||'—'}${m.precioRollo?' · $'+m.precioRollo+'/rollo':''}`; }
-    else { titulo=`Retiro${m.motivo?' · '+m.motivo:''}`; sub=`${m.obs||''}`; }
+    const {titulo,sub}=getTituloSub(m);
     return `<div class="mov-card">
       <div class="mov-icon" style="background:${bg}">${ic}</div>
       <div class="mov-info">
         <div class="mov-titulo">${titulo}</div>
-        <div class="mov-sub">${lote?.nombre||'—'} · ${sub}</div>
+        <div class="mov-sub">${sub}</div>
       </div>
-      <div class="mov-fecha">${m.fecha||'—'}</div>
+      <div class="mov-right">
+        <div class="mov-fecha">${m.fecha||'—'}</div>
+        <div class="mov-lote">${lote?.nombre||'—'}</div>
+      </div>
     </div>`;
   }).join('');
 }
+
+window.resetFiltros=()=>{
+  ['f-hist-lote','f-hist-tipo','f-hist-periodo'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  renderHistorial();
+};
 
 // UTILS
 function lastMov(loteId){ return movimientos.filter(m=>m.loteId===loteId).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0]||null; }
