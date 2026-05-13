@@ -1020,7 +1020,7 @@ function renderMapLotes(){
   Object.values(chipMarkers).forEach(m=>{ try{pastMap.removeLayer(m);}catch(e){} });
   pastLayers={}; chipMarkers={};
   const cl=lotes.filter(l=>l.campoId===campoActivoId);
-  const _lbl=document.getElementById('sp-campo-lbl'); if(_lbl) _lbl.textContent=campos.find(c=>c.id===campoActivoId)?.nombre||'Campo';
+  document.getElementById('sp-campo-lbl').textContent=campos.find(c=>c.id===campoActivoId)?.nombre||'Campo';
   const dest=document.getElementById('f-destino');
   if(dest) dest.innerHTML=cl.map(l=>`<option value="${l.id}">${l.nombre}</option>`).join('');
   const bounds=[];
@@ -1163,6 +1163,13 @@ function resolverColisionesChips(){
 }
 window._cc=id=>selectLote(id);
 
+function showPanelView(name){
+  ['sp-main-view','sp-hist-view','sp-form-view'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=(id==='sp-'+name+'-view'||(name==='main'&&id==='sp-main-view')||(name==='hist'&&id==='sp-hist-view')||(name==='form'&&id==='sp-form-view'))?'flex':'none';
+  });
+}
+
 function selectLote(id){
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
   showPanelView('main');
@@ -1214,11 +1221,47 @@ function updateChipForLote(id, selected){
   }
 }
 
+function renderLoteSummary(id){
+  const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  const mov=lastMov(id);
+  const estadoReal=getEstadoReal(lote,mov);
+  const color=EC[estadoReal]||'#777';
+  // Chip header
+  document.getElementById('sps-dot').style.background=color;
+  document.getElementById('sps-nombre').textContent=lote.nombre;
+  document.getElementById('sps-ha').textContent=`${lote.ha} ha`;
+  // Métricas
+  const dias=mov?dDias(mov.fecha):0;
+  let metricsHtml='';
+  if(estadoReal==='ocupado'&&mov){
+    const carga=(mov.cantidad/lote.ha).toFixed(1);
+    metricsHtml=`
+      <div class="slv-fm"><div class="slv-val green">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>
+      <div class="slv-fm"><div class="slv-val amber">${carga}</div><div class="slv-lbl">cab/ha</div></div>
+      <div class="slv-fm"><div class="slv-val blue">${dias}d</div><div class="slv-lbl">en lote</div></div>`;
+    if(lote.cultivo) metricsHtml+=`<div class="slv-fm"><div class="slv-val" style="font-size:12px;color:#aaa">${lote.cultivo}</div><div class="slv-lbl">cultivo</div></div>`;
+  } else {
+    metricsHtml=`
+      <div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoReal==='listo'?'listo':'descansando'}</div></div>
+      <div class="slv-fm"><div class="slv-val" style="color:#888">${lote.ha}</div><div class="slv-lbl">hectáreas</div></div>`;
+    if(lote.cultivo) metricsHtml+=`<div class="slv-fm"><div class="slv-val" style="font-size:12px;color:#aaa">${lote.cultivo}</div><div class="slv-lbl">cultivo</div></div>`;
+  }
+  document.getElementById('sps-metrics').innerHTML=metricsHtml;
+  document.getElementById('sp-lote-summary').style.display='block';
+  // Actualizar estado botones
+  const isOcup=estadoReal==='ocupado';
+  ['slv-mover','slv-baja','slv-parto','slv-estado'].forEach(bid=>{
+    const b=document.getElementById(bid); if(b) b.disabled=!isOcup;
+  });
+  document.getElementById('map-hint').style.opacity='0';
+}
+
 window.closeLoteView=()=>{
-  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:"rgba(255,255,255,0.5)",weight:1.5});
+  document.getElementById('sp-lote-summary').style.display='none';
+  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   if(loteSelId) updateChipForLote(loteSelId, false);
   loteSelId=null;
-  document.getElementById("map-hint").style.opacity="1";
+  document.getElementById('map-hint').style.opacity='1';
   renderPanel();
 };
 
