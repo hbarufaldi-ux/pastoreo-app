@@ -74,7 +74,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .slv-sub{font-size:10px;color:#777;margin-top:2px;}
 .slv-close{background:var(--surface2);border:none;color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .slv-body{flex:1;overflow-y:auto;}
-.slv-metrics{display:flex;flex-direction:row;flex-wrap:wrap;gap:5px;padding:0;}
+.slv-metrics{display:flex;flex-wrap:wrap;gap:5px;padding:10px 14px;}
 .slv-fm{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 10px;flex:0 0 auto;}
 .slv-val{font-size:17px;font-weight:500;}
 .slv-lbl{font-size:11px;color:#777;margin-top:1px;}
@@ -1567,7 +1567,7 @@ function renderPanel(){
       </div>
       <div class="lr-resumen${isSel?' open':''}" id="res-${l.id}">
         <div class="lr-resumen-inner">
-          <div class="lr-resumen-body"><div class="slv-metrics">${metricsHtml}</div></div>
+          <div class="lr-resumen-body"><div class="slv-metrics" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:5px;">${metricsHtml}</div></div>
         </div>
       </div>
     </div>`;
