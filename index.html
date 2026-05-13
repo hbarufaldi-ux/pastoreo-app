@@ -60,21 +60,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Vista de lote en panel */
 /* Panel lista expand/collapse */
-.lr{border-radius:8px;margin-bottom:3px;border:0.5px solid transparent;cursor:pointer;transition:background .12s,border-color .12s;}
-.lr:hover{background:rgba(255,255,255,0.04);}
-.lr.sel{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.25);}
-.lr-header{display:flex;align-items:center;gap:8px;padding:7px 8px;}
+.lr{background:transparent;border-radius:9px;margin-bottom:3px;border:0.5px solid transparent;cursor:pointer;transition:background .12s,border-color .12s;}
+.lr:hover{background:var(--surface2);}
+.lr.sel{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);}
+.lr-header{display:flex;align-items:center;gap:9px;padding:8px 9px;}
 .lr-resumen{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.4,0,.2,1);border-top:0px solid var(--border);}
 .lr-resumen.open{grid-template-rows:1fr;border-top:0.5px solid rgba(255,255,255,0.09);}
 .lr-resumen-inner{overflow:hidden;}
 .lr-resumen-body{padding:0;}
+.slv-header{padding:12px 14px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;}
+.slv-nombre{font-size:15px;font-weight:500;color:#f0f0f0;}
+.slv-sub{font-size:10px;color:#777;margin-top:2px;}
+.slv-close{background:var(--surface2);border:none;color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.slv-body{flex:1;overflow-y:auto;}
 .slv-metrics{display:flex;flex-direction:row;gap:4px;padding:6px 8px 8px;}
 .slv-fm{flex:1;background:rgba(255,255,255,0.05);border-radius:7px;padding:5px 6px;min-width:0;}
-.slv-val{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slv-val{font-size:13px;font-weight:600;}
 .slv-val.green{color:#22c55e;}
 .slv-val.amber{color:#f59e0b;}
 .slv-val.blue{color:#3b82f6;}
-.slv-lbl{font-size:9px;color:#8E8E93;margin-top:2px;white-space:nowrap;}
+.slv-lbl{font-size:9px;color:#8E8E93;margin-top:2px;}
+.slv-divider{height:0.5px;background:rgba(255,255,255,0.07);margin:0 14px;}
+.slv-anim{padding:10px 14px;}
+.slv-anim-sect{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.slv-anim-total{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+.slv-anim-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.slv-anim-cant{font-size:12px;font-weight:500;color:#e0e0e0;width:24px;}
+.slv-anim-cat{font-size:12px;color:#777;flex:1;}
+.slv-pill{font-size:9px;font-weight:500;padding:2px 6px;border-radius:8px;}
+.slv-pill.verde{background:rgba(34,197,94,0.12);color:#86efac;}
+.slv-pill.purple{background:rgba(168,85,247,0.12);color:#d8b4fe;}
+.slv-pill.amber{background:rgba(245,158,11,0.12);color:#fcd34d;}
 .slv-actions{padding:10px 14px 14px;flex-shrink:0;border-top:0.5px solid rgba(255,255,255,0.07);}
 .slv-act-row{display:flex;gap:5px;margin-bottom:5px;}
 .slv-btn{flex:1;height:32px;border-radius:9px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:500;}
@@ -1156,8 +1172,10 @@ function selectLote(id){
   renderPanel();
   // Abrir animación después del render
   requestAnimationFrame(()=>{
-    const el=document.getElementById('res-'+id);
-    if(el) el.classList.add('open');
+    requestAnimationFrame(()=>{
+      const el=document.getElementById('res-'+id);
+      if(el) el.classList.add('open');
+    });
   });
 }
 
@@ -1534,14 +1552,16 @@ function renderPanel(){
     let metricsHtml='';
     if(isOcup&&mov){
       const carga=(mov.cantidad/l.ha).toFixed(1);
-      metricsHtml=`<div class="slv-fm"><div class="slv-val green">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>`
-        +`<div class="slv-fm"><div class="slv-val amber">${carga}</div><div class="slv-lbl">cab/ha</div></div>`
-        +`<div class="slv-fm"><div class="slv-val blue">${dias}d</div><div class="slv-lbl">en lote</div></div>`
-        +(l.cultivo?`<div class="slv-fm"><div class="slv-val" style="font-size:10px;color:#aaa">${l.cultivo}</div><div class="slv-lbl">cultivo</div></div>`:'');
+      metricsHtml=`
+        <div class="slv-fm"><div class="slv-val green">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>
+        <div class="slv-fm"><div class="slv-val amber">${carga}</div><div class="slv-lbl">cab/ha</div></div>
+        <div class="slv-fm"><div class="slv-val blue">${dias}d</div><div class="slv-lbl">en lote</div></div>
+        ${l.cultivo?`<div class="slv-fm"><div class="slv-val" style="font-size:11px;color:#aaa">${l.cultivo}</div><div class="slv-lbl">cultivo</div></div>`:''}`;
     } else {
-      metricsHtml=`<div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoReal==='listo'?'listo':'descansando'}</div></div>`
-        +`<div class="slv-fm"><div class="slv-val" style="color:#888">${l.ha}</div><div class="slv-lbl">hectáreas</div></div>`
-        +(l.cultivo?`<div class="slv-fm"><div class="slv-val" style="font-size:10px;color:#aaa">${l.cultivo}</div><div class="slv-lbl">cultivo</div></div>`:'');
+      metricsHtml=`
+        <div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoReal==='listo'?'listo':'descansando'}</div></div>
+        <div class="slv-fm"><div class="slv-val" style="color:#888">${l.ha}</div><div class="slv-lbl">hectáreas</div></div>
+        ${l.cultivo?`<div class="slv-fm"><div class="slv-val" style="font-size:11px;color:#aaa">${l.cultivo}</div><div class="slv-lbl">cultivo</div></div>`:''}`;
     }
     return `<div class="lr${isSel?' sel':''}" data-id="${l.id}">
       <div class="lr-header" onclick="selectLote('${l.id}')">
@@ -1549,9 +1569,9 @@ function renderPanel(){
         <div class="lr-info"><div class="lr-nombre">${l.nombre}</div><div class="lr-sub">${l.ha}ha · ${l.cultivo||'—'}</div></div>
         ${badge}
       </div>
-      <div class="lr-resumen${isSel?' open':''}" id="res-${l.id}">
+      <div class="lr-resumen" id="res-${l.id}">
         <div class="lr-resumen-inner">
-          <div class="slv-metrics">${metricsHtml}</div>
+          <div class="lr-resumen-body"><div class="slv-metrics">${metricsHtml}</div></div>
         </div>
       </div>
     </div>`;
