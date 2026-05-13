@@ -651,58 +651,57 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="side-panel" class="collapsed">
     <div id="sp-resizer"></div>
 
-    <!-- Vista lista/gantt/resumen -->
-    <div id="sp-list-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="sp-header">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="sp-campo-lbl">Campo</div>
-        <div class="sp-tabs">
-          <button class="sp-tab active" onclick="switchSpTab('lista',this)">Lista</button>
-          <button class="sp-tab" onclick="switchSpTab('gantt',this)">Gantt</button>
-          <button class="sp-tab" onclick="switchSpTab('resumen',this)">Resumen</button>
-        </div>
-      </div>
-      <div class="sp-body" id="sp-body"></div>
-    </div>
+    <!-- Vista principal: resumen + lista + botones fijos -->
+    <div id="sp-main-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
 
-    <!-- Vista lote seleccionado -->
-    <div id="sp-lote-view">
-      <div class="slv-header">
-        <div>
-          <div class="slv-nombre" id="slv-nombre">—</div>
-          <div class="slv-sub" id="slv-sub">—</div>
+      <!-- Resumen lote seleccionado (oculto por defecto) -->
+      <div id="sp-lote-summary" style="display:none;flex-shrink:0;border-bottom:0.5px solid var(--border);padding:10px 12px 8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div style="min-width:0;flex:1;">
+            <div id="sps-chip" style="display:inline-flex;align-items:center;gap:6px;background:rgba(10,10,14,0.93);border:1.5px solid rgba(255,255,255,0.18);border-radius:10px;padding:5px 10px;margin-bottom:6px;max-width:100%;">
+              <span id="sps-dot" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
+              <span id="sps-nombre" style="font-size:13px;font-weight:600;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+              <span id="sps-ha" style="font-size:10px;color:#999;white-space:nowrap;"></span>
+            </div>
+            <div id="sps-metrics" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+          </div>
+          <button onclick="closeLoteView()" style="background:var(--surface2);border:none;color:var(--muted);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
         </div>
-        <button class="slv-close" onclick="closeLoteView()">✕</button>
       </div>
-      <div class="slv-body">
-        <div class="slv-metrics" id="slv-metrics"></div>
-        <div class="slv-divider"></div>
-        <div class="slv-anim" id="slv-anim" style="display:none">
-          <div class="slv-anim-sect">Animales</div>
-          <div id="slv-anim-rows"></div>
-        </div>
-        <div class="slv-divider" id="slv-anim-div" style="display:none"></div>
+
+      <!-- Header campo -->
+      <div style="padding:8px 12px 6px;flex-shrink:0;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;" id="sp-campo-lbl">Campo</div>
       </div>
-      <div class="slv-actions">
-        <div class="slv-act-row">
-          <button class="slv-btn g" id="slv-ingresar" onclick="openSPForm('entrada')"><i class="ti ti-arrow-down" aria-hidden="true"></i>Ingresar</button>
-          <button class="slv-btn b" id="slv-mover"    onclick="openSPForm('mover')"><i class="ti ti-arrows-exchange" aria-hidden="true"></i>Mover</button>
-          <button class="slv-btn r" id="slv-baja"     onclick="openSPForm('baja')"><i class="ti ti-x" aria-hidden="true"></i>Baja</button>
+
+      <!-- Lista de lotes scrolleable -->
+      <div id="sp-lotes-list" style="flex:1;overflow-y:auto;padding:4px 8px;"></div>
+
+      <!-- Botones de eventos fijos abajo -->
+      <div id="sp-actions" style="flex-shrink:0;border-top:0.5px solid var(--border);padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;gap:5px;">
+          <button class="slv-btn g" id="slv-ingresar" onclick="openSPForm('entrada')"><i class="ti ti-arrow-down"></i>Ingresar</button>
+          <button class="slv-btn b" id="slv-mover"    onclick="openSPForm('mover')"><i class="ti ti-arrows-exchange"></i>Mover</button>
+          <button class="slv-btn r" id="slv-baja"     onclick="openSPForm('baja')"><i class="ti ti-x"></i>Baja</button>
         </div>
-        <div class="slv-act-row">
-          <button class="slv-btn p" id="slv-parto"    onclick="openSPForm('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
-          <button class="slv-btn a" id="slv-estado"   onclick="openSPForm('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
-          <button class="slv-btn lime" id="slv-siembra" onclick="openSPForm('siembra')"><i class="ti ti-seeding" aria-hidden="true"></i>Siembra</button>
+        <div style="display:flex;gap:5px;">
+          <button class="slv-btn p" id="slv-parto"    onclick="openSPForm('parto')"><i class="ti ti-baby-carriage"></i>Parto</button>
+          <button class="slv-btn a" id="slv-estado"   onclick="openSPForm('estado')"><i class="ti ti-clipboard"></i>Estado</button>
+          <button class="slv-btn lime" id="slv-siembra" onclick="openSPForm('siembra')"><i class="ti ti-seeding"></i>Siembra</button>
         </div>
-        <div class="slv-act-row">
-          <button class="slv-btn t" id="slv-cosechar" onclick="openSPForm('cosechar')" style="flex:1"><i class="ti ti-scissors" aria-hidden="true"></i>Cosechar</button>
+        <div style="display:flex;gap:5px;">
+          <button class="slv-btn t" id="slv-cosechar" onclick="openSPForm('cosechar')" style="flex:1"><i class="ti ti-scissors"></i>Cosechar</button>
         </div>
       </div>
     </div>
 
-    <!-- Vista Registros en panel -->
+    <!-- Vista Registros -->
     <div id="sp-hist-view" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
       <div class="sp-header" style="padding:12px 14px 10px;">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Registros</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:13px;font-weight:700;">Registros</div>
+          <button onclick="showPanelView('main')" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;">✕</button>
+        </div>
         <div style="display:flex;flex-direction:column;gap:6px;">
           <select class="hist-filter-sel" id="f-hist-lote" onchange="renderHistorial()" style="width:100%">
             <option value="">Todos los lotes</option>
@@ -729,7 +728,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
             </select>
             <button class="hist-filter-reset" onclick="resetFiltros()">✕</button>
           </div>
-          <span class="hist-count" id="hist-count" style="font-size:10px;color:var(--muted);"></span>
+          <span class="hist-count" id="hist-count"></span>
         </div>
       </div>
       <div class="sp-body" id="hist-body" style="padding:8px;"></div>
@@ -960,7 +959,7 @@ window.showScreen=(name,btn)=>{
   document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   if(name==='config'){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); }
-  if(name==='pastoreo'){ showPanelView('list'); setTimeout(()=>pastMap.invalidateSize(),50); }
+  if(name==='pastoreo'){ showPanelView('main'); setTimeout(()=>pastMap.invalidateSize(),50); }
   if(name==='config') setTimeout(()=>cfgMap.invalidateSize(),50);
 };
 
@@ -1077,8 +1076,8 @@ function renderMapLotes(){
     const ptrEvents = z >= ZOOM_CHIPS ? 'auto' : 'none';
 
     // HTML según nivel de zoom inicial
-    const labelHtml = `<div class="lote-label" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:${ptrEvents};transition:opacity 0.2s">${lote.nombre}</div>`;
-    const chipHtml  = `<div class="lote-chip ${estadoReal}" onclick="window._cc('${lote.id}')" style="cursor:pointer;position:absolute;transform:translate(-50%,-100%);opacity:${chipOpacity};pointer-events:${ptrEvents};transition:opacity 0.2s">${chipInner}</div>`;
+    const labelHtml = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
+    const chipHtml  = `<div class="lote-label" style="cursor:default;position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:rgba(10,10,14,0.82);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;color:#f0f0f0;opacity:${chipOpacity};pointer-events:none;transition:opacity 0.2s">${lote.nombre}</div>`;
 
     const useFullChip = z >= ZOOM_CHIP_FULL;
     const m=L.marker(topCenter,{icon:L.divIcon({
@@ -1166,8 +1165,125 @@ window._cc=id=>selectLote(id);
 
 function selectLote(id){
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
-  document.getElementById('fam').classList.remove('open');
+  showPanelView('main');
+  // Deseleccionar lote anterior en mapa
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
+  // Actualizar chip en mapa del lote anterior
+  if(loteSelId) updateChipForLote(loteSelId, false);
+  loteSelId=id;
+  const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  const poly=pastLayers[id];
+  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.flyToBounds(poly.getBounds(),{padding:[80,80],duration:0.4,maxZoom:16}); }
+  // Chip en mapa: convertir label del lote seleccionado en chip
+  updateChipForLote(id, true);
+  // Mostrar resumen en panel
+  renderLoteSummary(id);
+  // Re-render lista (para marcar seleccionado)
+  renderPanel();
+}
+
+function updateChipForLote(id, selected){
+  const m = chipMarkers[id];
+  if(!m) return;
+  const lote = lotes.find(l=>l.id===id);
+  if(!lote) return;
+  if(selected){
+    // Mostrar chip completo (sin click)
+    const mov=lastMov(id);
+    const estadoReal=getEstadoReal(lote,mov);
+    const cantText=mov?.cantidad===1?'1 animal':`${mov?.cantidad||0} animales`;
+    let chipInner='';
+    if(estadoReal==='ocupado'&&mov){
+      const d=dDias(mov.fecha);
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div><div class="chip-total green">${cantText}</div><div class="chip-dias green">${d}d en lote</div>`;
+    } else if(estadoReal==='sembrado'){
+      const d=lote.fechaSiembra?dDias(lote.fechaSiembra):mov?dDias(mov.fecha):0;
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div><div class="chip-total" style="color:#a855f7">Sembrado</div><div class="chip-dias" style="color:#a855f7">${d}d desarrollo</div>`;
+    } else if(estadoReal==='listo'){
+      const d=lote.fechaDescanso?dDias(lote.fechaDescanso):mov?dDias(mov.fecha):0;
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div><div class="chip-total blue">Listo ✓</div><div class="chip-dias blue">${d}d</div>`;
+    } else {
+      const d=mov?dDias(mov.fecha):0;
+      chipInner=`<div class="chip-head"><span class="chip-nombre">${lote.nombre}</span><span class="chip-ha">${lote.ha} ha</span></div><div class="chip-total amber">Descansando</div><div class="chip-dias amber">${d}d</div>`;
+    }
+    const chipHtml=`<div class="lote-chip ${estadoReal} selected-chip" style="cursor:default;position:absolute;transform:translate(-50%,-100%);transition:opacity 0.2s">${chipInner}</div>`;
+    m.setIcon(L.divIcon({className:'',html:chipHtml,iconSize:[0,0],iconAnchor:[0,0]}));
+  } else {
+    // Volver a label normal
+    if(m._labelHtml) m.setIcon(L.divIcon({className:'',html:m._labelHtml,iconSize:[0,0],iconAnchor:[0,0]}));
+  }
+}
+
+function renderLoteSummary(id){
+  const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  const mov=lastMov(id);
+  const estadoReal=getEstadoReal(lote,mov);
+  const color=EC[estadoReal]||'#777';
+  // Chip header
+  document.getElementById('sps-dot').style.background=color;
+  document.getElementById('sps-nombre').textContent=lote.nombre;
+  document.getElementById('sps-ha').textContent=`${lote.ha} ha`;
+  // Métricas
+  const dias=mov?dDias(mov.fecha):0;
+  let metricsHtml='';
+  if(estadoReal==='ocupado'&&mov){
+    const carga=(mov.cantidad/lote.ha).toFixed(1);
+    metricsHtml=`
+      <div class="slv-fm"><div class="slv-val green">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>
+      <div class="slv-fm"><div class="slv-val amber">${carga}</div><div class="slv-lbl">cab/ha</div></div>
+      <div class="slv-fm"><div class="slv-val blue">${dias}d</div><div class="slv-lbl">en lote</div></div>`;
+    if(lote.cultivo) metricsHtml+=`<div class="slv-fm"><div class="slv-val" style="font-size:12px;color:#aaa">${lote.cultivo}</div><div class="slv-lbl">cultivo</div></div>`;
+  } else {
+    metricsHtml=`
+      <div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoReal==='listo'?'listo':'descansando'}</div></div>
+      <div class="slv-fm"><div class="slv-val" style="color:#888">${lote.ha}</div><div class="slv-lbl">hectáreas</div></div>`;
+    if(lote.cultivo) metricsHtml+=`<div class="slv-fm"><div class="slv-val" style="font-size:12px;color:#aaa">${lote.cultivo}</div><div class="slv-lbl">cultivo</div></div>`;
+  }
+  document.getElementById('sps-metrics').innerHTML=metricsHtml;
+  document.getElementById('sp-lote-summary').style.display='block';
+  // Actualizar estado botones
+  const isOcup=estadoReal==='ocupado';
+  ['slv-mover','slv-baja','slv-parto','slv-estado'].forEach(bid=>{
+    const b=document.getElementById(bid); if(b) b.disabled=!isOcup;
+  });
+  document.getElementById('map-hint').style.opacity='0';
+}
+
+window.closeLoteView=()=>{
+  document.getElementById('sp-lote-summary').style.display='none';
+  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
+  if(loteSelId) updateChipForLote(loteSelId, false);
+  loteSelId=null;
+  document.getElementById('map-hint').style.opacity='1';
+  renderPanel();
+};
+
+window.openSPForm=tipo=>{
+  const titulos={entrada:'Ingresar animales',mover:'Mover animales',baja:'Registrar baja',parto:'Registrar parto',estado:'Actualizar estado',siembra:'Registrar siembra',cosechar:'Cosechar'};
+  document.getElementById('sfv-title').textContent=titulos[tipo]||tipo;
+  const bsForm=document.getElementById('bs-'+tipo);
+  const sfvBody=document.getElementById('sfv-body');
+  if(bsForm){
+    sfvBody.innerHTML=bsForm.innerHTML;
+    sfvBody.querySelectorAll('[onclick]').forEach(el=>{ const fn=el.getAttribute('onclick'); el.setAttribute('onclick',fn); });
+    sfvBody.querySelectorAll('.confirm-btn').forEach(btn=>{
+      const oc=btn.getAttribute('onclick');
+      if(oc&&oc.includes('confirmar(')) btn.setAttribute('onclick',oc.replace('confirmar(','confirmarSP('));
+      if(oc&&oc.includes('closeBS()')) btn.setAttribute('onclick',"closeSPForm()");
+    });
+    const today=new Date().toISOString().split('T')[0];
+    sfvBody.querySelectorAll('input[type=date]').forEach(el=>{ if(!el.value) el.value=today; });
+  }
+  showPanelView('form');
+};
+
+window.closeSPForm=()=>{ showPanelView('main'); };
+
+window.confirmarSP=async(tipo)=>{
+  await confirmar(tipo);
+  closeSPForm();
+  if(loteSelId) renderLoteSummary(loteSelId);
+};
   loteSelId=id;
   const lote=lotes.find(l=>l.id===id); if(!lote) return;
   const poly=pastLayers[id];
@@ -1236,109 +1352,11 @@ function selectLote(id){
   document.getElementById('map-hint').style.opacity='0';
   renderPanel();
   document.querySelectorAll('.lr').forEach(r=>r.classList.toggle('sel',r.dataset.id===id));
-  showLoteView(id);
 }
 window.closeFam=()=>{
   document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   loteSelId=null; document.getElementById('map-hint').style.opacity='1'; renderPanel();
-};
-
-function showLoteView(id){
-  const lote=lotes.find(l=>l.id===id); if(!lote) return;
-  const mov=lastMov(id);
-  const estadoV=getEstadoReal(lote,mov);
-  const color=EC[estadoV];
-
-  document.getElementById('slv-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
-  document.getElementById('slv-sub').textContent=`${lote.cultivo||'Sin cultivo'} · ${EL[estadoV]||'Descansando'}`;
-
-  // Métricas
-  const mEl=document.getElementById('slv-metrics');
-  const dias=mov?dDias(mov.fecha):0;
-  if(estadoV==='ocupado'&&mov){
-    const partosTot=movimientos.filter(m=>m.loteId===id&&m.tipo==='parto').reduce((s,p)=>s+(p.terneros||0)+(p.terneras||0),0);
-    mEl.innerHTML=`
-      <div class="slv-fm"><div class="slv-val" style="color:#22c55e">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>
-      <div class="slv-fm"><div class="slv-val" style="color:#f59e0b">${(mov.cantidad/lote.ha).toFixed(1)}</div><div class="slv-lbl">cab/ha</div></div>
-      <div class="slv-fm"><div class="slv-val" style="color:#3b82f6">${dias}d</div><div class="slv-lbl">en lote</div></div>
-      ${partosTot>0?`<div class="slv-fm"><div class="slv-val" style="color:#a855f7">${partosTot}</div><div class="slv-lbl">crías</div></div>`:''}`;
-    // Animales
-    const animEl=document.getElementById('slv-anim');
-    const rowsEl=document.getElementById('slv-anim-rows');
-    const ultEstado=movimientos.filter(m=>m.loteId===id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
-    animEl.style.display='block';
-    document.getElementById('slv-anim-div').style.display='block';
-    const totalText=mov.cantidad===1?'1 animal':`${mov.cantidad} animales`;
-    let rows=`<div class="slv-anim-total">${totalText}${ultEstado?` <span class="slv-pill verde">${ultEstado.estadoRepro}</span>`:''}</div>`;
-    if(mov.categoria) rows+=`<div class="slv-anim-row"><span class="slv-anim-cant">${mov.cantidad-partosTot}</span><span class="slv-anim-cat">${mov.categoria}</span></div>`;
-    if(partosTot>0) rows+=`<div class="slv-anim-row"><span class="slv-anim-cant">${partosTot}</span><span class="slv-anim-cat">Crías</span><span class="slv-pill purple">Con madre</span></div>`;
-    rowsEl.innerHTML=rows;
-  } else if(estadoV==='descanso'||estadoV==='listo'){
-    mEl.innerHTML=`
-      <div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoV==='listo'?'listo':'descansando'}</div></div>
-      <div class="slv-fm"><div class="slv-val" style="color:#555">${lote.ha}</div><div class="slv-lbl">hectáreas</div></div>`;
-    document.getElementById('slv-anim').style.display='none';
-    document.getElementById('slv-anim-div').style.display='none';
-  }
-
-  // Botones disabled
-  const isOcup=estadoV==='ocupado';
-  ['slv-mover','slv-baja','slv-parto'].forEach(bid=>{
-    const b=document.getElementById(bid); if(b) b.disabled=!isOcup;
-  });
-
-  // Cambiar a vista lote
-  showPanelView('lote');
-}
-
-function showPanelView(name){
-  const views={
-    'list' : document.getElementById('sp-list-view'),
-    'lote' : document.getElementById('sp-lote-view'),
-    'form' : document.getElementById('sp-form-view'),
-    'hist' : document.getElementById('sp-hist-view'),
-  };
-  Object.entries(views).forEach(([k,el])=>{
-    if(!el) return;
-    el.style.display = k===name ? 'flex' : 'none';
-  });
-}
-
-window.closeLoteView=()=>{
-  showPanelView('list');
-  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
-  loteSelId=null;
-  document.getElementById('map-hint').style.opacity='1';
-  renderPanel();
-};
-
-window.openSPForm=tipo=>{
-  const titulos={entrada:'Ingresar animales',mover:'Mover animales',baja:'Registrar baja',parto:'Registrar parto',estado:'Actualizar estado',siembra:'Registrar siembra',cosechar:'Cosechar'};
-  document.getElementById('sfv-title').textContent=titulos[tipo]||tipo;
-  const bsForm=document.getElementById('bs-'+tipo);
-  const sfvBody=document.getElementById('sfv-body');
-  if(bsForm){
-    sfvBody.innerHTML=bsForm.innerHTML;
-    sfvBody.querySelectorAll('[onclick]').forEach(el=>{ const fn=el.getAttribute('onclick'); el.setAttribute('onclick',fn); });
-    sfvBody.querySelectorAll('.confirm-btn').forEach(btn=>{
-      const oc=btn.getAttribute('onclick');
-      if(oc&&oc.includes('confirmar(')) btn.setAttribute('onclick',oc.replace('confirmar(','confirmarSP('));
-      if(oc&&oc.includes('closeBS()')) btn.setAttribute('onclick',"closeSPForm()");
-    });
-    const today=new Date().toISOString().split('T')[0];
-    sfvBody.querySelectorAll('input[type=date]').forEach(el=>{ if(!el.value) el.value=today; });
-  }
-  showPanelView('form');
-};
-
-window.closeSPForm=()=>{ showPanelView('lote'); };
-
-// confirmarSP usa el mismo confirmar pero referencia inputs del sfv-body
-window.confirmarSP=async(tipo)=>{
-  await confirmar(tipo);
-  closeSPForm();
-  if(loteSelId) showLoteView(loteSelId);
 };
 
 // BOTTOM SHEET
@@ -1599,26 +1617,29 @@ function actualizarUILocal(){
 
 // PANEL LATERAL
 window.switchSpTab=(tab,el)=>{ spTab=tab; document.querySelectorAll('.sp-tab').forEach(t=>t.classList.remove('active')); if(el)el.classList.add('active'); renderPanel(); };
-function renderPanel(){ spTab==='lista'?renderLista():spTab==='gantt'?renderGantt():renderResumen(); }
-
-function renderLista(){
-  const cl=lotes.filter(l=>l.campoId===campoActivoId), body=document.getElementById('sp-body');
+function renderPanel(){
+  const cl=lotes.filter(l=>l.campoId===campoActivoId);
+  const body=document.getElementById('sp-lotes-list');
+  if(!body) return;
+  document.getElementById('sp-campo-lbl').textContent=campos.find(c=>c.id===campoActivoId)?.nombre||'Campo';
   if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:32px 12px;color:var(--muted);font-size:12px">No hay lotes.<br>Creálos en ⚙ Config.</div>`; return; }
   body.innerHTML=cl.map(l=>{
-    const estado=l.estado||'libre',color=EC[estado],mov=lastMov(l.id);
-    let badge=estado==='ocupado'&&mov?`<span class="lr-badge" style="background:rgba(34,197,94,.15);color:var(--green)">${mov.cantidad}cab</span>`:estado==='descanso'?`<span class="lr-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">${dDias(mov?.fecha||'')}d</span>`:`<span class="lr-badge" style="background:rgba(59,130,246,.15);color:var(--blue)">Libre</span>`;
-    return `<div class="lr${loteSelId===l.id?' sel':''}" data-id="${l.id}" onclick="selectLote('${l.id}')"><div class="lr-dot" style="background:${color}"></div><div class="lr-info"><div class="lr-nombre">${l.nombre}</div><div class="lr-sub">${l.ha}ha·${l.cultivo||'—'}</div></div>${badge}</div>`;
+    const mov=lastMov(l.id);
+    const estadoReal=getEstadoReal(l,mov);
+    const color=EC[estadoReal]||'#777';
+    const isOcup=estadoReal==='ocupado';
+    const isSel=loteSelId===l.id;
+    let badge='';
+    if(isOcup&&mov) badge=`<span class="lr-badge" style="background:rgba(34,197,94,.15);color:var(--green)">${mov.cantidad}cab</span>`;
+    else if(estadoReal==='listo') badge=`<span class="lr-badge" style="background:rgba(59,130,246,.15);color:var(--blue)">Listo</span>`;
+    else if(estadoReal==='sembrado') badge=`<span class="lr-badge" style="background:rgba(168,85,247,.15);color:#d8b4fe">${dDias(l.fechaSiembra||'')}d</span>`;
+    else badge=`<span class="lr-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">${dDias(mov?.fecha||'')}d</span>`;
+    return `<div class="lr${isSel?' sel':''}" data-id="${l.id}" onclick="selectLote('${l.id}')">
+      <div class="lr-dot" style="background:${color}"></div>
+      <div class="lr-info"><div class="lr-nombre">${l.nombre}</div><div class="lr-sub">${l.ha}ha · ${l.cultivo||'—'}</div></div>
+      ${badge}
+    </div>`;
   }).join('');
-}
-function renderGantt(){
-  const cl=lotes.filter(l=>l.campoId===campoActivoId);
-  document.getElementById('sp-body').innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-align:right">← 30 días</div>`+cl.map(l=>{ const mov=lastMov(l.id),color=EC[l.estado||'libre'],dias=mov?Math.min(dDias(mov.fecha),30):0,pct=Math.round((dias/30)*100); return `<div class="gantt-row"><div class="gantt-name" title="${l.nombre}">${l.nombre}</div><div class="gantt-track">${dias>0?`<div class="gantt-bar" style="left:${100-pct}%;width:${pct}%;background:${color};opacity:.85"></div><div class="gantt-lbl">${dias}d</div>`:''}</div></div>`; }).join('');
-}
-function renderResumen(){
-  const cl=lotes.filter(l=>l.campoId===campoActivoId),ocup=cl.filter(l=>l.estado==='ocupado');
-  const tA=ocup.reduce((s,l)=>{ const m=lastMov(l.id); return s+(m?.cantidad||0); },0);
-  const hA=ocup.reduce((s,l)=>s+Number(l.ha||0),0);
-  document.getElementById('sp-body').innerHTML=`<div class="stat-grid">${sc('Animales',tA,'cab','var(--green)')}${sc('Lotes ocup.',ocup.length,'/'+cl.length,'var(--blue)')}${sc('Ha en uso',hA.toFixed(0),'ha','var(--amber)')}${sc('Carga',hA>0?(tA/hA).toFixed(1):0,'cab/ha','var(--purple)')}</div>${ocup.map(l=>{ const m=lastMov(l.id); return `<div style="background:var(--surface2);border-radius:9px;padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between"><b style="font-size:12px">${l.nombre}·${l.ha}ha</b><span style="color:var(--green);font-size:11px;font-weight:700">${m?.cantidad||0}cab</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m?.categoria||'—'}·${m?.estadoRepro||'—'}·${dDias(m?.fecha||'')}d</div></div>`; }).join('')}`;
 }
 function sc(l,v,u,c){ return `<div class="stat-card"><div class="stat-lbl">${l}</div><div class="stat-val" style="color:${c}">${v}<span class="stat-unit"> ${u}</span></div></div>`; }
 
