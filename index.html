@@ -241,23 +241,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .li-del{background:var(--surface3);border:none;color:var(--muted);padding:3px 7px;border-radius:6px;font-size:11px;cursor:pointer;}
 .li-del:hover{color:var(--red);}
 /* ── HISTORIAL ── */
-#sc-historial{flex-direction:column;overflow:hidden;}
-.hist-filters{padding:12px 16px;border-bottom:0.5px solid var(--border);flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.hist-filter-sel{background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;outline:none;cursor:pointer;-webkit-appearance:none;}
+/* hist-view en panel */
+.hist-filter-sel{background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;cursor:pointer;-webkit-appearance:none;}
 .hist-filter-sel:focus{border-color:var(--blue);}
 .hist-filter-reset{background:transparent;border:0.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 10px;cursor:pointer;}
 .hist-filter-reset:hover{color:var(--text);}
-.hist-count{font-size:11px;color:var(--muted);margin-left:auto;}
-.hist-list{flex:1;overflow-y:auto;padding:10px 16px;}
-.mov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .12s;}
+.hist-count{font-size:11px;color:var(--muted);}
+.mov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:11px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .12s;}
 .mov-card:hover{background:var(--surface2);}
-.mov-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.mov-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
 .mov-info{flex:1;min-width:0;}
-.mov-titulo{font-size:12px;font-weight:500;color:#f0f0f0;}
-.mov-sub{font-size:11px;color:#777;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mov-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
-.mov-fecha{font-size:11px;color:#555;}
-.mov-lote{font-size:10px;font-weight:500;padding:2px 7px;border-radius:8px;background:var(--surface2);color:#777;}
+.mov-titulo{font-size:11px;font-weight:500;color:#f0f0f0;}
+.mov-sub{font-size:10px;color:#777;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mov-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
+.mov-fecha{font-size:10px;color:#555;}
+.mov-lote{font-size:9px;font-weight:500;padding:1px 5px;border-radius:6px;background:var(--surface2);color:#777;}
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;}
 .modal{background:var(--surface);border-radius:18px;border:0.5px solid var(--border);width:100%;max-width:420px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6);}
@@ -392,15 +390,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
-  <!-- Derecha: nav · sync · salir -->
+  <!-- Derecha: salir · nav · sync -->
   <div class="tb-right">
+    <button class="tb-btn-salir" onclick="confirmarSalir()" title="Salir">⏻</button>
+    <div class="tb-sep"></div>
     <div class="tb-nav">
       <button class="tb-navbtn active" onclick="showScreen('pastoreo',this)">🗺 Pastoreo</button>
       <button class="tb-navbtn" onclick="showScreen('config',this)">⚙ Config</button>
-      <button class="tb-navbtn" onclick="showScreen('historial',this)">📋 Registros</button>
+      <button class="tb-navbtn" onclick="showPanel('historial')">📋 Registros</button>
     </div>
     <div class="sync-dot" id="sync-dot" style="margin:0 6px;"></div>
-    <button class="tb-btn-salir" onclick="confirmarSalir()" title="Salir">⏻</button>
   </div>
 </div>
 
@@ -410,12 +409,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="map"></div>
     <!-- CONTROLES MAPA IZQ -->
     <div style="position:absolute;top:12px;left:12px;z-index:400;display:flex;flex-direction:column;gap:4px;">
-      <button onclick="pastMap.zoomIn()" title="Acercar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">+</button>
-      <button onclick="pastMap.zoomOut()" title="Alejar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">−</button>
-      <button onclick="fitBounds()" title="Ver todos los lotes" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">100%</button>
+      <button onclick="mapZoom(1)" title="Acercar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">+</button>
+      <button onclick="mapZoom(-1)" title="Alejar" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);line-height:1;">−</button>
+      <button id="btn-zoom-lbl" onclick="fitBounds()" title="Ver todos los lotes" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">14</button>
       <div style="height:0.5px;background:var(--border);margin:2px 0;"></div>
-      <button id="btn-sat" onclick="setLayer('satellite',this)" title="Satélite" style="background:rgba(59,130,246,0.25);border:0.5px solid var(--blue);color:#93c5fd;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">🛰</button>
-      <button id="btn-osm" onclick="setLayer('osm',this)" title="Callejero" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">🗺</button>
+      <button id="btn-sat" onclick="setLayer('satellite')" title="Satélite" style="background:rgba(59,130,246,0.25);border:0.5px solid var(--blue);color:#93c5fd;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">SAT</button>
+      <button id="btn-osm" onclick="setLayer('osm')" title="Callejero" style="background:rgba(17,17,19,0.92);border:0.5px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">OSM</button>
     </div>
     <!-- BARRA MOBILE INFERIOR -->
     <div id="map-controls-mobile" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:400;background:rgba(17,17,19,0.94);border-top:0.5px solid var(--border);padding:8px 14px;gap:8px;align-items:center;backdrop-filter:blur(10px);">
@@ -700,6 +699,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
 
+    <!-- Vista Registros en panel -->
+    <div id="sp-hist-view" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="sp-header" style="padding:12px 14px 10px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Registros</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <select class="hist-filter-sel" id="f-hist-lote" onchange="renderHistorial()" style="width:100%">
+            <option value="">Todos los lotes</option>
+          </select>
+          <select class="hist-filter-sel" id="f-hist-tipo" onchange="renderHistorial()" style="width:100%">
+            <option value="">Todos los eventos</option>
+            <option value="entrada">Ingreso animales</option>
+            <option value="salida">Retiro animales</option>
+            <option value="mover">Movimiento</option>
+            <option value="baja">Baja</option>
+            <option value="parto">Parto</option>
+            <option value="estado">Estado repro</option>
+            <option value="siembra">Siembra</option>
+            <option value="segado">Segado</option>
+            <option value="enrollado">Enrollado</option>
+            <option value="cosechar">Cosecha</option>
+          </select>
+          <div style="display:flex;gap:6px;">
+            <select class="hist-filter-sel" id="f-hist-periodo" onchange="renderHistorial()" style="flex:1">
+              <option value="">Todo el tiempo</option>
+              <option value="7">7 días</option>
+              <option value="30">30 días</option>
+              <option value="90">90 días</option>
+            </select>
+            <button class="hist-filter-reset" onclick="resetFiltros()">✕</button>
+          </div>
+          <span class="hist-count" id="hist-count" style="font-size:10px;color:var(--muted);"></span>
+        </div>
+      </div>
+      <div class="sp-body" id="hist-body" style="padding:8px;"></div>
+    </div>
+
     <!-- Formulario en panel -->
     <div id="sp-form-view">
       <div class="sfv-header">
@@ -735,37 +770,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="cfg-body" id="cfg-body"></div>
   </div>
-</div>
-
-<!-- ══ REGISTROS ══ -->
-<div class="screen" id="sc-historial">
-  <div class="hist-filters">
-    <select class="hist-filter-sel" id="f-hist-lote" onchange="renderHistorial()">
-      <option value="">Todos los lotes</option>
-    </select>
-    <select class="hist-filter-sel" id="f-hist-tipo" onchange="renderHistorial()">
-      <option value="">Todos los eventos</option>
-      <option value="entrada">Ingreso animales</option>
-      <option value="salida">Retiro animales</option>
-      <option value="mover">Movimiento</option>
-      <option value="baja">Baja</option>
-      <option value="parto">Parto</option>
-      <option value="estado">Estado repro</option>
-      <option value="siembra">Siembra</option>
-      <option value="segado">Segado</option>
-      <option value="enrollado">Enrollado</option>
-      <option value="cosechar">Cosecha</option>
-    </select>
-    <select class="hist-filter-sel" id="f-hist-periodo" onchange="renderHistorial()">
-      <option value="">Todo el tiempo</option>
-      <option value="7">Últimos 7 días</option>
-      <option value="30">Últimos 30 días</option>
-      <option value="90">Últimos 90 días</option>
-    </select>
-    <button class="hist-filter-reset" onclick="resetFiltros()">✕ Limpiar</button>
-    <span class="hist-count" id="hist-count"></span>
-  </div>
-  <div class="hist-list" id="hist-body"></div>
 </div>
 
 <!-- MODAL CAMPO -->
@@ -895,12 +899,12 @@ mkSat().addTo(cfgMap);
 const ZOOM_CHIPS = 13; // zoom mínimo para mostrar chips
 pastMap.on('zoomend', ()=>{
   const z = pastMap.getZoom();
-  // Primero mostrar todos
+  const lbl = document.getElementById('btn-zoom-lbl');
+  if(lbl) lbl.textContent = z;
   Object.values(chipMarkers).forEach(m=>{
     const el = m.getElement()?.querySelector('.lote-chip');
     if(el){ el.style.opacity = z >= ZOOM_CHIPS ? '1' : '0'; el.style.pointerEvents = z >= ZOOM_CHIPS ? 'auto' : 'none'; }
   });
-  // Luego resolver colisiones si zoom suficiente
   if(z >= ZOOM_CHIPS) setTimeout(resolverColisionesChips, 150);
 });
 pastMap.on('click',()=>{
@@ -938,18 +942,45 @@ window.fitBounds=()=>{
 };
 
 // NAVIGATION
+window.mapZoom=(delta)=>{ if(pastMap) { if(delta>0) pastMap.zoomIn(); else pastMap.zoomOut(); } };
+
+// Mostrar una vista dentro del panel lateral
+window.showPanel=(view)=>{
+  // Asegurar que estamos en pantalla pastoreo
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-pastoreo').classList.add('active');
+  document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
+  // Marcar nav activa
+  document.querySelectorAll('.tb-navbtn').forEach(b=>{ if(b.textContent.includes('Registros')&&view==='historial') b.classList.add('active'); });
+  // Abrir panel
+  if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); }
+  // Mostrar vista correcta
+  document.getElementById('sp-list-view').style.display='none';
+  document.getElementById('sp-lote-view').style.display='none';
+  document.getElementById('sp-form-view').style.display='none';
+  document.getElementById('sp-hist-view').style.display='flex';
+  setTimeout(()=>pastMap.invalidateSize(),260);
+  renderHistorial();
+};
+
 window.showScreen=(name,btn)=>{
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('sc-'+name).classList.add('active');
   document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  // Abrir panel al navegar (excepto pastoreo donde queda cerrado hasta elegir lote)
-  if(name==='config'||name==='historial'){
+  if(name==='config'){
     panelOpen=true;
     document.getElementById('side-panel').classList.remove('collapsed');
   }
-  if(name==='pastoreo') setTimeout(()=>pastMap.invalidateSize(),50);
-  if(name==='config')   setTimeout(()=>cfgMap.invalidateSize(),50);
+  if(name==='pastoreo'){
+    // Volver a vista lista
+    document.getElementById('sp-list-view').style.display='flex';
+    document.getElementById('sp-lote-view').style.display='none';
+    document.getElementById('sp-form-view').style.display='none';
+    document.getElementById('sp-hist-view').style.display='none';
+    setTimeout(()=>pastMap.invalidateSize(),50);
+  }
+  if(name==='config') setTimeout(()=>cfgMap.invalidateSize(),50);
 };
 
 function renderCampoSel(){
@@ -965,7 +996,7 @@ window.cambiarCampo=id=>{
   const sm=document.getElementById('campo-sel-mobile'); if(sm) sm.value=id;
   renderMapLotes(); renderPanel();
 };
-window.setLayer=(name,btn)=>{
+window.setLayer=(name)=>{
   pastMap.removeLayer(pastTile);
   pastTile=name==='satellite'?mkSat():mkOSM();
   pastTile.addTo(pastMap);
@@ -1120,6 +1151,9 @@ window._cc=id=>selectLote(id);
 function selectLote(id){
   // Abrir panel si está cerrado
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
+  // Ocultar otras vistas del panel
+  document.getElementById('sp-list-view').style.display='none';
+  document.getElementById('sp-hist-view').style.display='none';
   // Cerrar card anterior
   document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
