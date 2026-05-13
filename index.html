@@ -329,7 +329,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="fam-header">
         <div id="fam-nombre">—</div>
         <div id="fam-sub">—</div>
-        <span id="fam-badge">—</span>
+        <span id="fam-badge" style="display:none">—</span>
         <button id="fam-close" onclick="closeFam()">✕</button>
       </div>
       <div style="height:0.5px;background:var(--border);"></div>
@@ -349,7 +349,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="fa-act-row">
           <button class="fa-btn purple" id="fam-parto"    onclick="openBS('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
           <button class="fa-btn amber"  id="fam-estado"   onclick="openBS('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
-          <button class="fa-btn" id="fam-cosechar" onclick="openBS('cosechar')" style="background:rgba(20,184,166,0.15);color:#5eead4"><i class="ti ti-scissors" aria-hidden="true"></i>Cosechar</button>
+          <button class="fa-btn" id="fam-siembra" onclick="openBS('siembra')" style="background:rgba(101,163,13,0.15);color:#bef264"><i class="ti ti-seeding" aria-hidden="true"></i>Siembra</button>
+        </div>
+        <div class="fa-act-row">
+          <button class="fa-btn" id="fam-cosechar" onclick="openBS('cosechar')" style="background:rgba(20,184,166,0.15);color:#5eead4;flex:1"><i class="ti ti-scissors" aria-hidden="true"></i>Cosechar</button>
         </div>
       </div>
     </div>
@@ -464,17 +467,62 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
       </div>
 
+      <!-- SIEMBRA -->
+      <div id="bs-siembra" style="display:none">
+        <div class="f-group"><label class="f-label">Fecha de siembra</label><input class="f-input" type="date" id="f-fecha-siembra"></div>
+        <div class="f-group"><label class="f-label">Cultivo</label>
+          <select class="f-select" id="f-cultivo-siembra">
+            <option value="">Seleccioná cultivo</option>
+            <option>Alfalfa</option><option>Alfalfa/verdeo</option><option>Maíz</option>
+            <option>Sorgo</option><option>Cebada</option><option>Soja</option>
+            <option>Trigo</option><option>Pastura natural</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Semilla (kg/ha)</label><input class="f-input" type="number" id="f-semilla-kg" placeholder="ej: 25"></div>
+          <div class="f-group"><label class="f-label">Fertilizante</label><input class="f-input" type="text" id="f-ferti" placeholder="tipo y dosis"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Tractorista</label><input class="f-input" type="text" id="f-tractorista" placeholder="nombre"></div>
+          <div class="f-group"><label class="f-label">Equipo / Maquinaria</label><input class="f-input" type="text" id="f-equipo-siembra" placeholder="ej: John Deere 5090"></div>
+        </div>
+        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-siembra" placeholder="condición suelo, humedad, etc…"></div>
+        <button class="confirm-btn" style="background:rgba(101,163,13,0.8);color:#fff" onclick="confirmar('siembra')">🌱 Confirmar siembra</button>
+        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+      </div>
+
       <!-- COSECHAR -->
       <div id="bs-cosechar" style="display:none">
-        <div class="f-group"><label class="f-label">Fecha de cosecha / siega</label><input class="f-input" type="date" id="f-fecha-cosechar"></div>
-        <div class="f-label" style="margin-bottom:5px">Tipo de cosecha</div>
-        <div class="chips-wrap" id="cosechar-tipo-chips">
-          <div class="bs-chip" onclick="selOne(this,'cosechar-tipo-chips','s-blue')">🐄 Pastoreo (voisin)</div>
-          <div class="bs-chip" onclick="selOne(this,'cosechar-tipo-chips','s-blue')">🌾 Cosecha mecánica (rollos)</div>
+        <div class="f-label" style="margin-bottom:6px">Etapa</div>
+        <div class="chips-wrap" id="cosechar-etapa-chips">
+          <div class="bs-chip" onclick="selOne(this,'cosechar-etapa-chips','s-blue');showEtapa('segado')">a) Segado</div>
+          <div class="bs-chip" onclick="selOne(this,'cosechar-etapa-chips','s-blue');showEtapa('enrollado')">b) Enrollado</div>
         </div>
-        <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-cosechar" placeholder="rendimiento, condición, etc…"></div>
-        <button class="confirm-btn" style="background:rgba(20,184,166,0.8);color:#fff" onclick="confirmar('cosechar')">🌾 Confirmar cosecha</button>
-        <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+
+        <!-- Segado -->
+        <div id="etapa-segado" style="display:none">
+          <div class="f-group"><label class="f-label">Fecha de segado</label><input class="f-input" type="date" id="f-fecha-segado"></div>
+          <div class="f-row">
+            <div class="f-group"><label class="f-label">Maquinista</label><input class="f-input" type="text" id="f-maq-segado" placeholder="nombre"></div>
+            <div class="f-group"><label class="f-label">Precio ($/ha)</label><input class="f-input" type="number" id="f-precio-segado" placeholder="ej: 8500"></div>
+          </div>
+          <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-segado" placeholder="condición, rendimiento…"></div>
+          <button class="confirm-btn" style="background:rgba(20,184,166,0.8);color:#fff" onclick="confirmar('segado')">✓ Confirmar segado</button>
+          <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+        </div>
+
+        <!-- Enrollado -->
+        <div id="etapa-enrollado" style="display:none">
+          <div class="f-group"><label class="f-label">Fecha de enrollado</label><input class="f-input" type="date" id="f-fecha-enrollado"></div>
+          <div class="f-row">
+            <div class="f-group"><label class="f-label">Maquinista</label><input class="f-input" type="text" id="f-maq-enrollado" placeholder="nombre"></div>
+            <div class="f-group"><label class="f-label">Cantidad de rollos</label><input class="f-input" type="number" id="f-rollos" placeholder="ej: 45" min="1"></div>
+          </div>
+          <div class="f-group"><label class="f-label">Precio por rollo ($)</label><input class="f-input" type="number" id="f-precio-rollo" placeholder="ej: 12000"></div>
+          <div class="f-group"><label class="f-label">Observaciones</label><input class="f-input" type="text" id="f-obs-enrollado" placeholder="peso promedio, calidad…"></div>
+          <button class="confirm-btn" style="background:rgba(20,184,166,0.8);color:#fff" onclick="confirmar('enrollado')">✓ Confirmar enrollado</button>
+          <button class="confirm-btn" style="background:var(--surface2);color:var(--muted);margin-top:8px" onclick="closeBS()">Cancelar</button>
+        </div>
       </div>
 
       <!-- ACTUALIZAR ESTADO -->
@@ -877,7 +925,14 @@ function selectLote(id){
     const ultEstado=movimientos.filter(m=>m.loteId===id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
     animEl.style.display='block';
     let rows='';
-    if(mov.cantidad>0) rows+=`<div class="fa-row"><span class="fa-cant">${mov.cantidad}</span><span class="fa-cat">${mov.categoria||'Animales'}</span>${ultEstado?`<span class="fa-pill verde">${ultEstado.estadoRepro}</span>`:''}</div>`;
+    // Total con estado repro al lado
+    const totalText=mov.cantidad===1?'1 animal':`${mov.cantidad} animales`;
+    rows+=`<div class="fa-row" style="margin-bottom:6px;padding-bottom:5px;border-bottom:0.5px solid rgba(255,255,255,0.05)">
+      <span class="fa-cant" style="font-size:13px;font-weight:500;color:#f0f0f0;width:auto;margin-right:4px">${totalText}</span>
+      ${ultEstado?`<span class="fa-pill verde" style="font-size:10px">${ultEstado.estadoRepro}</span>`:''}
+    </div>`;
+    // Desglose por categoría
+    if(mov.categoria) rows+=`<div class="fa-row"><span class="fa-cant">${mov.cantidad-partosTot}</span><span class="fa-cat">${mov.categoria||'Animales'}</span></div>`;
     if(partosTot>0) rows+=`<div class="fa-row"><span class="fa-cant">${partosTot}</span><span class="fa-cat">Crías</span><span class="fa-pill purple">Con madre</span></div>`;
     rowsEl.innerHTML=rows||'<div style="font-size:11px;color:#555">Sin detalle registrado</div>';
   } else if(estado==='descanso'&&mov){
@@ -932,7 +987,7 @@ window.closeFam=()=>{
 
 // BOTTOM SHEET
 window.openBS=tipo=>{
-  ['entrada','mover','baja','parto','estado','cosechar'].forEach(t=>{
+  ['entrada','mover','baja','parto','estado','cosechar','siembra'].forEach(t=>{
     const el=document.getElementById('bs-'+t); if(el) el.style.display='none';
   });
   const el=document.getElementById('bs-'+tipo); if(el) el.style.display='block';
@@ -959,6 +1014,16 @@ window.openBS=tipo=>{
 
 window.closeBS=()=>document.getElementById('bs').classList.remove('open');
 
+window.showEtapa=etapa=>{
+  ['etapa-segado','etapa-enrollado'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  const el=document.getElementById('etapa-'+etapa); if(el) el.style.display='block';
+  // Fecha default
+  const today=new Date().toISOString().split('T')[0];
+  const fechaId=etapa==='segado'?'f-fecha-segado':'f-fecha-enrollado';
+  const fechaEl=document.getElementById(fechaId); if(fechaEl&&!fechaEl.value) fechaEl.value=today;
+};
 window.showDestino=tipo=>{
   ['destino-lote-wrap','destino-parcela-wrap','destino-campo-wrap','destino-corral-wrap'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
@@ -1087,21 +1152,57 @@ window.confirmar=async tipo=>{
       movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'parto',fecha:document.getElementById('f-fecha-parto').value||today,cantidad:cantActual+totalNacidos,terneros,terneras,mortM,mortF,vacasParto,creadoEn:new Date().toISOString()});
       showToast(`🍼 Parto registrado: ${totalNacidos} terneros vivos${mortM+mortF>0?', '+(mortM+mortF)+' mortinatos':''}`);
 
-    } else if(tipo==='cosechar'){
-      const tipoEl=document.querySelector('#cosechar-tipo-chips .bs-chip.s-blue');
-      const fecha=document.getElementById('f-fecha-cosechar').value||today;
+    } else if(tipo==='siembra'){
+      const fecha=document.getElementById('f-fecha-siembra').value||today;
+      const cultivo=document.getElementById('f-cultivo-siembra').value;
       await addDoc(collection(db,'movimientos'),{
-        loteId:lote.id,campoId:campoActivoId,tipo:'cosechar',
-        fecha,
-        tipoCosecha:tipoEl?tipoEl.textContent.trim():'',
-        obs:document.getElementById('f-obs-cosechar').value,
+        loteId:lote.id,campoId:campoActivoId,tipo:'siembra',fecha,
+        cultivo,
+        semillaKgHa:document.getElementById('f-semilla-kg').value||null,
+        fertilizante:document.getElementById('f-ferti').value,
+        tractorista:document.getElementById('f-tractorista').value,
+        equipo:document.getElementById('f-equipo-siembra').value,
+        obs:document.getElementById('f-obs-siembra').value,
+        creadoEn:new Date().toISOString()
+      });
+      if(cultivo){
+        await updateDoc(doc(db,'lotes',lote.id),{cultivo});
+        const idxS=lotes.findIndex(l=>l.id===lote.id); if(idxS>=0) lotes[idxS].cultivo=cultivo;
+      }
+      movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'siembra',fecha,cultivo,creadoEn:new Date().toISOString()});
+      showToast(`🌱 Siembra registrada en ${lote.nombre}`);
+
+    } else if(tipo==='segado'){
+      const fecha=document.getElementById('f-fecha-segado').value||today;
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'segado',fecha,
+        maquinista:document.getElementById('f-maq-segado').value,
+        precioHa:document.getElementById('f-precio-segado').value||null,
+        obs:document.getElementById('f-obs-segado').value,
         creadoEn:new Date().toISOString()
       });
       await updateDoc(doc(db,'lotes',lote.id),{estado:'descanso',fechaDescanso:fecha});
-      const idxC=lotes.findIndex(l=>l.id===lote.id);
-      if(idxC>=0){ lotes[idxC].estado='descanso'; lotes[idxC].fechaDescanso=fecha; }
-      movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'cosechar',fecha,creadoEn:new Date().toISOString()});
-      showToast(`🌾 Cosecha registrada en ${lote.nombre} · inicia descanso`);
+      const idxSg=lotes.findIndex(l=>l.id===lote.id);
+      if(idxSg>=0){lotes[idxSg].estado='descanso';lotes[idxSg].fechaDescanso=fecha;}
+      movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'segado',fecha,creadoEn:new Date().toISOString()});
+      showToast(`✂ Segado registrado en ${lote.nombre} · inicia descanso`);
+
+    } else if(tipo==='enrollado'){
+      const fecha=document.getElementById('f-fecha-enrollado').value||today;
+      const rollos=document.getElementById('f-rollos').value;
+      await addDoc(collection(db,'movimientos'),{
+        loteId:lote.id,campoId:campoActivoId,tipo:'enrollado',fecha,
+        maquinista:document.getElementById('f-maq-enrollado').value,
+        rollos:rollos?Number(rollos):null,
+        precioRollo:document.getElementById('f-precio-rollo').value||null,
+        obs:document.getElementById('f-obs-enrollado').value,
+        creadoEn:new Date().toISOString()
+      });
+      movimientos.unshift({loteId:lote.id,campoId:campoActivoId,tipo:'enrollado',fecha,rollos:rollos?Number(rollos):null,creadoEn:new Date().toISOString()});
+      showToast(`🌾 Enrollado registrado: ${rollos||0} rollos en ${lote.nombre}`);
+
+    } else if(tipo==='cosechar'){
+      showToast('Seleccioná una etapa: Segado o Enrollado',true); return;
     } else if(tipo==='estado'){
       const estadoEl=document.querySelector('#nuevo-estado-chips .bs-chip[class*="s-"]');
       if(!estadoEl){ showToast('Seleccioná un estado',true); sync('ok'); return; }
@@ -1352,7 +1453,7 @@ function renderHistorial(){
   const cl=[...movimientos].sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn));
   const body=document.getElementById('hist-body');
   if(!cl.length){ body.innerHTML=`<div style="text-align:center;padding:48px 16px;color:var(--muted);font-size:13px">No hay movimientos registrados aún.</div>`; return; }
-  const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'},cosechar:{bg:'#0f766e',ic:'🌾'}};
+  const iconos={entrada:{bg:'#14532d',ic:'⬇'},salida:{bg:'#7f1d1d',ic:'⬆'},mover:{bg:'#1e3a5f',ic:'↔'},baja:{bg:'#7f1d1d',ic:'✕'},parto:{bg:'#4a1d96',ic:'🍼'},estado:{bg:'#1e3a5f',ic:'📋'},cosechar:{bg:'#0f766e',ic:'🌾'},siembra:{bg:'#365314',ic:'🌱'},segado:{bg:'#0f766e',ic:'✂'},enrollado:{bg:'#0f766e',ic:'🌾'}};
   body.innerHTML=cl.map(m=>{
     const lote=lotes.find(l=>l.id===m.loteId);
     const t=m.tipo||'entrada';
@@ -1364,6 +1465,9 @@ function renderHistorial(){
     else if(t==='parto') { titulo=`Parto: ${(m.terneros||0)+(m.terneras||0)} terneros vivos`; sub=`♂${m.terneros||0} ♀${m.terneras||0}${(m.mortM||0)+(m.mortF||0)>0?' · Mortinatos: '+((m.mortM||0)+(m.mortF||0)):''} · ${m.vacasParto||0} vacas`; }
     else if(t==='estado') { titulo=`Estado: ${m.estadoRepro||'—'}`; sub=`${m.categoria||'Rodeo'}${m.cantidadAfectada?' · '+m.cantidadAfectada+' cab':''}`; }
     else if(t==='cosechar') { titulo=`Cosecha: ${m.tipoCosecha||'—'}`; sub=`Inicia descanso${m.obs?' · '+m.obs:''}`; }
+    else if(t==='siembra') { titulo=`Siembra: ${m.cultivo||'—'}`; sub=`${m.semillaKgHa?m.semillaKgHa+'kg/ha · ':''}${m.tractorista||''}${m.equipo?' · '+m.equipo:''}`; }
+    else if(t==='segado') { titulo=`Segado`; sub=`${m.maquinista||'—'}${m.precioHa?' · $'+m.precioHa+'/ha':''}`; }
+    else if(t==='enrollado') { titulo=`Enrollado: ${m.rollos||0} rollos`; sub=`${m.maquinista||'—'}${m.precioRollo?' · $'+m.precioRollo+'/rollo':''}`; }
     else { titulo=`Retiro${m.motivo?' · '+m.motivo:''}`; sub=`${m.obs||''}`; }
     return `<div class="mov-card">
       <div class="mov-icon" style="background:${bg}">${ic}</div>
