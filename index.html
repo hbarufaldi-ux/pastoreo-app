@@ -29,13 +29,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #sc-pastoreo{flex-direction:row;}
 #map-wrap{position:relative;flex:1;}
 #map{width:100%;height:100%;}
-#side-panel{width:290px;background:var(--surface);border-left:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .25s;}
-#side-panel.collapsed{width:0;}
+#side-panel{width:300px;min-width:220px;max-width:500px;background:var(--surface);border-left:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;position:relative;}
+#side-panel.collapsed{width:0 !important;min-width:0;}
+#sp-resizer{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:10;background:transparent;}
+#sp-resizer:hover{background:rgba(59,130,246,0.3);}
+#sp-resizer.dragging{background:rgba(59,130,246,0.5);}
+#sp-resizer{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:10;}
 .sp-header{padding:12px 14px 0;border-bottom:0.5px solid var(--border);flex-shrink:0;}
 .sp-tabs{display:flex;gap:2px;margin-top:8px;}
 .sp-tab{flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;border-bottom:2px solid transparent;}
 .sp-tab.active{color:var(--green);border-bottom-color:var(--green);}
 .sp-body{flex:1;overflow-y:auto;padding:10px;}
+
+/* Vista de lote en panel */
+#sp-lote-view{display:none;flex-direction:column;flex:1;overflow:hidden;}
+#sp-lote-view.active{display:flex;}
+.slv-header{padding:12px 14px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;}
+.slv-nombre{font-size:15px;font-weight:500;color:#f0f0f0;}
+.slv-sub{font-size:10px;color:#777;margin-top:2px;}
+.slv-close{background:var(--surface2);border:none;color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.slv-body{flex:1;overflow-y:auto;}
+.slv-metrics{display:flex;flex-wrap:wrap;gap:5px;padding:10px 14px;}
+.slv-fm{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 10px;flex:0 0 auto;}
+.slv-val{font-size:17px;font-weight:500;}
+.slv-lbl{font-size:11px;color:#777;margin-top:1px;}
+.slv-divider{height:0.5px;background:rgba(255,255,255,0.07);margin:0 14px;}
+.slv-anim{padding:10px 14px;}
+.slv-anim-sect{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.slv-anim-total{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+.slv-anim-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.slv-anim-cant{font-size:12px;font-weight:500;color:#e0e0e0;width:24px;}
+.slv-anim-cat{font-size:12px;color:#777;flex:1;}
+.slv-pill{font-size:9px;font-weight:500;padding:2px 6px;border-radius:8px;}
+.slv-pill.verde{background:rgba(34,197,94,0.12);color:#86efac;}
+.slv-pill.purple{background:rgba(168,85,247,0.12);color:#d8b4fe;}
+.slv-pill.amber{background:rgba(245,158,11,0.12);color:#fcd34d;}
+.slv-actions{padding:10px 14px 14px;flex-shrink:0;border-top:0.5px solid rgba(255,255,255,0.07);}
+.slv-act-row{display:flex;gap:5px;margin-bottom:5px;}
+.slv-btn{flex:1;height:32px;border-radius:9px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:500;}
+.slv-btn i{font-size:15px;}
+.slv-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.slv-btn.g{background:rgba(34,197,94,0.15);color:#86efac;}
+.slv-btn.b{background:rgba(59,130,246,0.15);color:#93c5fd;}
+.slv-btn.r{background:rgba(239,68,68,0.15);color:#fca5a5;}
+.slv-btn.p{background:rgba(168,85,247,0.15);color:#d8b4fe;}
+.slv-btn.a{background:rgba(245,158,11,0.15);color:#fcd34d;}
+.slv-btn.t{background:rgba(20,184,166,0.15);color:#5eead4;}
+.slv-btn.lime{background:rgba(101,163,13,0.15);color:#bef264;}
+
+/* Formulario en panel desktop */
+#sp-form-view{display:none;flex-direction:column;flex:1;overflow:hidden;}
+#sp-form-view.active{display:flex;}
+.sfv-header{padding:12px 14px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sfv-back{background:var(--surface2);border:none;color:var(--muted);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.sfv-title{font-size:14px;font-weight:500;color:#f0f0f0;}
+.sfv-body{flex:1;overflow-y:auto;padding:12px 14px;}
 .lote-chip{background:rgba(10,10,14,0.93);border:1.5px solid rgba(255,255,255,0.18);border-radius:12px;padding:10px 14px;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.5);min-width:130px;white-space:nowrap;}
 .lote-chip:hover{opacity:0.9;transform:translate(-50%,-50%) scale(1.04) !important;}
 .lote-chip.ocupado{border-color:rgba(34,197,94,0.65);}
@@ -553,15 +601,64 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="map-hint" id="map-hint">Tocá un lote para registrar movimiento</div>
   </div>
   <div id="side-panel">
-    <div class="sp-header">
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="sp-campo-lbl">Campo</div>
-      <div class="sp-tabs">
-        <button class="sp-tab active" onclick="switchSpTab('lista',this)">Lista</button>
-        <button class="sp-tab" onclick="switchSpTab('gantt',this)">Gantt</button>
-        <button class="sp-tab" onclick="switchSpTab('resumen',this)">Resumen</button>
+    <div id="sp-resizer"></div>
+
+    <!-- Vista lista/gantt/resumen -->
+    <div id="sp-list-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="sp-header">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="sp-campo-lbl">Campo</div>
+        <div class="sp-tabs">
+          <button class="sp-tab active" onclick="switchSpTab('lista',this)">Lista</button>
+          <button class="sp-tab" onclick="switchSpTab('gantt',this)">Gantt</button>
+          <button class="sp-tab" onclick="switchSpTab('resumen',this)">Resumen</button>
+        </div>
+      </div>
+      <div class="sp-body" id="sp-body"></div>
+    </div>
+
+    <!-- Vista lote seleccionado -->
+    <div id="sp-lote-view">
+      <div class="slv-header">
+        <div>
+          <div class="slv-nombre" id="slv-nombre">—</div>
+          <div class="slv-sub" id="slv-sub">—</div>
+        </div>
+        <button class="slv-close" onclick="closeLoteView()">✕</button>
+      </div>
+      <div class="slv-body">
+        <div class="slv-metrics" id="slv-metrics"></div>
+        <div class="slv-divider"></div>
+        <div class="slv-anim" id="slv-anim" style="display:none">
+          <div class="slv-anim-sect">Animales</div>
+          <div id="slv-anim-rows"></div>
+        </div>
+        <div class="slv-divider" id="slv-anim-div" style="display:none"></div>
+      </div>
+      <div class="slv-actions">
+        <div class="slv-act-row">
+          <button class="slv-btn g" id="slv-ingresar" onclick="openSPForm('entrada')"><i class="ti ti-arrow-down" aria-hidden="true"></i>Ingresar</button>
+          <button class="slv-btn b" id="slv-mover"    onclick="openSPForm('mover')"><i class="ti ti-arrows-exchange" aria-hidden="true"></i>Mover</button>
+          <button class="slv-btn r" id="slv-baja"     onclick="openSPForm('baja')"><i class="ti ti-x" aria-hidden="true"></i>Baja</button>
+        </div>
+        <div class="slv-act-row">
+          <button class="slv-btn p" id="slv-parto"    onclick="openSPForm('parto')"><i class="ti ti-baby-carriage" aria-hidden="true"></i>Parto</button>
+          <button class="slv-btn a" id="slv-estado"   onclick="openSPForm('estado')"><i class="ti ti-clipboard" aria-hidden="true"></i>Estado</button>
+          <button class="slv-btn lime" id="slv-siembra" onclick="openSPForm('siembra')"><i class="ti ti-seeding" aria-hidden="true"></i>Siembra</button>
+        </div>
+        <div class="slv-act-row">
+          <button class="slv-btn t" id="slv-cosechar" onclick="openSPForm('cosechar')" style="flex:1"><i class="ti ti-scissors" aria-hidden="true"></i>Cosechar</button>
+        </div>
       </div>
     </div>
-    <div class="sp-body" id="sp-body"></div>
+
+    <!-- Formulario en panel -->
+    <div id="sp-form-view">
+      <div class="sfv-header">
+        <button class="sfv-back" onclick="closeSPForm()">←</button>
+        <div class="sfv-title" id="sfv-title">—</div>
+      </div>
+      <div class="sfv-body" id="sfv-body"></div>
+    </div>
   </div>
 </div>
 
@@ -782,6 +879,32 @@ window.cambiarCampo=id=>{
 window.setLayer=name=>{ pastMap.removeLayer(pastTile); pastTile=name==='satellite'?mkSat():mkOSM(); pastTile.addTo(pastMap); };
 window.togglePanel=()=>{ panelOpen=!panelOpen; document.getElementById('side-panel').classList.toggle('collapsed',!panelOpen); setTimeout(()=>pastMap.invalidateSize(),260); };
 
+// Panel resizable
+(function(){
+  const panel=document.getElementById('side-panel');
+  const resizer=document.getElementById('sp-resizer');
+  if(!resizer||!panel) return;
+  let startX,startW;
+  resizer.addEventListener('mousedown',e=>{
+    startX=e.clientX; startW=panel.offsetWidth;
+    resizer.classList.add('dragging');
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+    e.preventDefault();
+  });
+  function onMove(e){
+    const dx=startX-e.clientX;
+    const newW=Math.min(500,Math.max(220,startW+dx));
+    panel.style.width=newW+'px';
+    pastMap.invalidateSize();
+  }
+  function onUp(){
+    resizer.classList.remove('dragging');
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+  }
+})();
+
 // PASTOREO MAP
 function renderMapLotes(){
   Object.values(pastLayers).forEach(l=>{ try{pastMap.removeLayer(l);}catch(e){} });
@@ -949,9 +1072,9 @@ function selectLote(id){
     document.getElementById('fam-mover').disabled=estado!=='ocupado';
   document.getElementById('fam-baja').disabled=estado!=='ocupado';
   document.getElementById('fam-parto').disabled=estado!=='ocupado';
-  const fam=document.getElementById('fam');
-  // En mobile siempre bottom sheet
+  // Mobile → FAM como bottom sheet
   if(window.innerWidth<=700){
+    const fam=document.getElementById('fam');
     fam.style.cssText='';
     fam.classList.add('open');
     document.getElementById('map-hint').style.opacity='0';
@@ -959,30 +1082,115 @@ function selectLote(id){
     document.querySelectorAll('.lr').forEach(r=>r.classList.toggle('sel',r.dataset.id===id));
     return;
   }
-  if(window.innerWidth>700 && poly){
-    // Posicionar al lado del lote
-    const bounds=poly.getBounds();
-    const ne=pastMap.latLngToContainerPoint(bounds.getNorthEast());
-    const mapEl=document.getElementById('map');
-    const mapW=mapEl.offsetWidth;
-    const cardW=260;
-    const margin=12;
-    let left=ne.x+margin;
-    if(left+cardW>mapW-margin) left=ne.x-cardW-margin;
-    if(left<margin) left=margin;
-    fam.style.left=left+'px';
-    fam.style.top=Math.max(60,ne.y-20)+'px';
-    fam.style.bottom='auto';
-  }
-  fam.classList.add('open');
+  // Desktop → mostrar en panel lateral
   document.getElementById('map-hint').style.opacity='0';
   renderPanel();
   document.querySelectorAll('.lr').forEach(r=>r.classList.toggle('sel',r.dataset.id===id));
+  showLoteView(id);
 }
 window.closeFam=()=>{
   document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   loteSelId=null; document.getElementById('map-hint').style.opacity='1'; renderPanel();
+};
+
+function showLoteView(id){
+  const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  const mov=lastMov(id);
+  const estadoV=getEstadoReal(lote,mov);
+  const color=EC[estadoV];
+
+  document.getElementById('slv-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
+  document.getElementById('slv-sub').textContent=`${lote.cultivo||'Sin cultivo'} · ${EL[estadoV]||'Descansando'}`;
+
+  // Métricas
+  const mEl=document.getElementById('slv-metrics');
+  const dias=mov?dDias(mov.fecha):0;
+  if(estadoV==='ocupado'&&mov){
+    const partosTot=movimientos.filter(m=>m.loteId===id&&m.tipo==='parto').reduce((s,p)=>s+(p.terneros||0)+(p.terneras||0),0);
+    mEl.innerHTML=`
+      <div class="slv-fm"><div class="slv-val" style="color:#22c55e">${mov.cantidad}</div><div class="slv-lbl">animales</div></div>
+      <div class="slv-fm"><div class="slv-val" style="color:#f59e0b">${(mov.cantidad/lote.ha).toFixed(1)}</div><div class="slv-lbl">cab/ha</div></div>
+      <div class="slv-fm"><div class="slv-val" style="color:#3b82f6">${dias}d</div><div class="slv-lbl">en lote</div></div>
+      ${partosTot>0?`<div class="slv-fm"><div class="slv-val" style="color:#a855f7">${partosTot}</div><div class="slv-lbl">crías</div></div>`:''}`;
+    // Animales
+    const animEl=document.getElementById('slv-anim');
+    const rowsEl=document.getElementById('slv-anim-rows');
+    const ultEstado=movimientos.filter(m=>m.loteId===id&&m.estadoRepro).sort((a,b)=>b.creadoEn?.localeCompare(a.creadoEn))[0];
+    animEl.style.display='block';
+    document.getElementById('slv-anim-div').style.display='block';
+    const totalText=mov.cantidad===1?'1 animal':`${mov.cantidad} animales`;
+    let rows=`<div class="slv-anim-total">${totalText}${ultEstado?` <span class="slv-pill verde">${ultEstado.estadoRepro}</span>`:''}</div>`;
+    if(mov.categoria) rows+=`<div class="slv-anim-row"><span class="slv-anim-cant">${mov.cantidad-partosTot}</span><span class="slv-anim-cat">${mov.categoria}</span></div>`;
+    if(partosTot>0) rows+=`<div class="slv-anim-row"><span class="slv-anim-cant">${partosTot}</span><span class="slv-anim-cat">Crías</span><span class="slv-pill purple">Con madre</span></div>`;
+    rowsEl.innerHTML=rows;
+  } else if(estadoV==='descanso'||estadoV==='listo'){
+    mEl.innerHTML=`
+      <div class="slv-fm"><div class="slv-val" style="color:${color}">${dias}d</div><div class="slv-lbl">${estadoV==='listo'?'listo':'descansando'}</div></div>
+      <div class="slv-fm"><div class="slv-val" style="color:#555">${lote.ha}</div><div class="slv-lbl">hectáreas</div></div>`;
+    document.getElementById('slv-anim').style.display='none';
+    document.getElementById('slv-anim-div').style.display='none';
+  }
+
+  // Botones disabled
+  const isOcup=estadoV==='ocupado';
+  ['slv-mover','slv-baja','slv-parto'].forEach(bid=>{
+    const b=document.getElementById(bid); if(b) b.disabled=!isOcup;
+  });
+
+  // Cambiar a vista lote
+  document.getElementById('sp-list-view').style.display='none';
+  document.getElementById('sp-lote-view').classList.add('active');
+  document.getElementById('sp-form-view').classList.remove('active');
+}
+
+window.closeLoteView=()=>{
+  document.getElementById('sp-lote-view').classList.remove('active');
+  document.getElementById('sp-list-view').style.display='flex';
+  if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
+  loteSelId=null;
+  document.getElementById('map-hint').style.opacity='1';
+  renderPanel();
+};
+
+window.openSPForm=tipo=>{
+  const titulos={entrada:'Ingresar animales',mover:'Mover animales',baja:'Registrar baja',parto:'Registrar parto',estado:'Actualizar estado',siembra:'Registrar siembra',cosechar:'Cosechar'};
+  document.getElementById('sfv-title').textContent=titulos[tipo]||tipo;
+  // Clonar el formulario del BS al panel
+  const bsForm=document.getElementById('bs-'+tipo);
+  const sfvBody=document.getElementById('sfv-body');
+  if(bsForm){
+    sfvBody.innerHTML=bsForm.innerHTML;
+    // Re-attachar eventos onclick
+    sfvBody.querySelectorAll('[onclick]').forEach(el=>{
+      const fn=el.getAttribute('onclick');
+      el.setAttribute('onclick',fn);
+    });
+    // Cambiar confirmar() a confirmarSP()
+    sfvBody.querySelectorAll('.confirm-btn').forEach(btn=>{
+      const oc=btn.getAttribute('onclick');
+      if(oc&&oc.includes('confirmar(')) btn.setAttribute('onclick',oc.replace('confirmar(','confirmarSP('));
+      if(oc&&oc.includes('closeBS()')) btn.setAttribute('onclick',"closeSPForm()");
+    });
+    // Fecha default
+    const today=new Date().toISOString().split('T')[0];
+    sfvBody.querySelectorAll('input[type=date]').forEach(el=>{ if(!el.value) el.value=today; });
+  }
+  document.getElementById('sp-lote-view').classList.remove('active');
+  document.getElementById('sp-form-view').classList.add('active');
+};
+
+window.closeSPForm=()=>{
+  document.getElementById('sp-form-view').classList.remove('active');
+  document.getElementById('sp-lote-view').classList.add('active');
+};
+
+// confirmarSP usa el mismo confirmar pero referencia inputs del sfv-body
+window.confirmarSP=async(tipo)=>{
+  // Mapear IDs del panel al confirmar estándar
+  await confirmar(tipo);
+  closeSPForm();
+  if(loteSelId) showLoteView(loteSelId);
 };
 
 // BOTTOM SHEET
