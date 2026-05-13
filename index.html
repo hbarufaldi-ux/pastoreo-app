@@ -944,19 +944,12 @@ window.mapZoom=(delta)=>{ if(pastMap) { if(delta>0) pastMap.zoomIn(); else pastM
 
 // Mostrar una vista dentro del panel lateral
 window.showPanel=(view)=>{
-  // Asegurar que estamos en pantalla pastoreo
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('sc-pastoreo').classList.add('active');
   document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
-  // Marcar nav activa
   document.querySelectorAll('.tb-navbtn').forEach(b=>{ if(b.textContent.includes('Registros')&&view==='historial') b.classList.add('active'); });
-  // Abrir panel
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); }
-  // Mostrar vista correcta
-  document.getElementById('sp-list-view').style.display='none';
-  document.getElementById('sp-lote-view').style.display='none';
-  document.getElementById('sp-form-view').style.display='none';
-  document.getElementById('sp-hist-view').style.display='flex';
+  showPanelView('hist');
   setTimeout(()=>pastMap.invalidateSize(),260);
   renderHistorial();
 };
@@ -966,18 +959,8 @@ window.showScreen=(name,btn)=>{
   document.getElementById('sc-'+name).classList.add('active');
   document.querySelectorAll('.tb-navbtn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  if(name==='config'){
-    panelOpen=true;
-    document.getElementById('side-panel').classList.remove('collapsed');
-  }
-  if(name==='pastoreo'){
-    // Volver a vista lista
-    document.getElementById('sp-list-view').style.display='flex';
-    document.getElementById('sp-lote-view').style.display='none';
-    document.getElementById('sp-form-view').style.display='none';
-    document.getElementById('sp-hist-view').style.display='none';
-    setTimeout(()=>pastMap.invalidateSize(),50);
-  }
+  if(name==='config'){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); }
+  if(name==='pastoreo'){ showPanelView('list'); setTimeout(()=>pastMap.invalidateSize(),50); }
   if(name==='config') setTimeout(()=>cfgMap.invalidateSize(),50);
 };
 
@@ -1182,18 +1165,13 @@ function resolverColisionesChips(){
 window._cc=id=>selectLote(id);
 
 function selectLote(id){
-  // Abrir panel si está cerrado
   if(!panelOpen){ panelOpen=true; document.getElementById('side-panel').classList.remove('collapsed'); setTimeout(()=>pastMap.invalidateSize(),260); }
-  // Ocultar otras vistas del panel
-  document.getElementById('sp-list-view').style.display='none';
-  document.getElementById('sp-hist-view').style.display='none';
-  // Cerrar card anterior
   document.getElementById('fam').classList.remove('open');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   loteSelId=id;
   const lote=lotes.find(l=>l.id===id); if(!lote) return;
   const poly=pastLayers[id];
-  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.fitBounds(poly.getBounds(),{padding:[80,80],animate:false}); }
+  if(poly){ poly.setStyle({color:'#fff',weight:3}); pastMap.flyToBounds(poly.getBounds(),{padding:[80,80],duration:0.4,maxZoom:16}); }
   const estado=lote.estado||'libre', color=EC[estado];
   // Header
   document.getElementById('fam-nombre').textContent=`${lote.nombre} · ${lote.ha} ha`;
@@ -1311,14 +1289,24 @@ function showLoteView(id){
   });
 
   // Cambiar a vista lote
-  document.getElementById('sp-list-view').style.display='none';
-  document.getElementById('sp-lote-view').classList.add('active');
-  document.getElementById('sp-form-view').classList.remove('active');
+  showPanelView('lote');
+}
+
+function showPanelView(name){
+  const views={
+    'list' : document.getElementById('sp-list-view'),
+    'lote' : document.getElementById('sp-lote-view'),
+    'form' : document.getElementById('sp-form-view'),
+    'hist' : document.getElementById('sp-hist-view'),
+  };
+  Object.entries(views).forEach(([k,el])=>{
+    if(!el) return;
+    el.style.display = k===name ? 'flex' : 'none';
+  });
 }
 
 window.closeLoteView=()=>{
-  document.getElementById('sp-lote-view').classList.remove('active');
-  document.getElementById('sp-list-view').style.display='flex';
+  showPanelView('list');
   if(loteSelId&&pastLayers[loteSelId]) pastLayers[loteSelId].setStyle({color:'rgba(255,255,255,0.5)',weight:1.5});
   loteSelId=null;
   document.getElementById('map-hint').style.opacity='1';
@@ -1328,38 +1316,26 @@ window.closeLoteView=()=>{
 window.openSPForm=tipo=>{
   const titulos={entrada:'Ingresar animales',mover:'Mover animales',baja:'Registrar baja',parto:'Registrar parto',estado:'Actualizar estado',siembra:'Registrar siembra',cosechar:'Cosechar'};
   document.getElementById('sfv-title').textContent=titulos[tipo]||tipo;
-  // Clonar el formulario del BS al panel
   const bsForm=document.getElementById('bs-'+tipo);
   const sfvBody=document.getElementById('sfv-body');
   if(bsForm){
     sfvBody.innerHTML=bsForm.innerHTML;
-    // Re-attachar eventos onclick
-    sfvBody.querySelectorAll('[onclick]').forEach(el=>{
-      const fn=el.getAttribute('onclick');
-      el.setAttribute('onclick',fn);
-    });
-    // Cambiar confirmar() a confirmarSP()
+    sfvBody.querySelectorAll('[onclick]').forEach(el=>{ const fn=el.getAttribute('onclick'); el.setAttribute('onclick',fn); });
     sfvBody.querySelectorAll('.confirm-btn').forEach(btn=>{
       const oc=btn.getAttribute('onclick');
       if(oc&&oc.includes('confirmar(')) btn.setAttribute('onclick',oc.replace('confirmar(','confirmarSP('));
       if(oc&&oc.includes('closeBS()')) btn.setAttribute('onclick',"closeSPForm()");
     });
-    // Fecha default
     const today=new Date().toISOString().split('T')[0];
     sfvBody.querySelectorAll('input[type=date]').forEach(el=>{ if(!el.value) el.value=today; });
   }
-  document.getElementById('sp-lote-view').classList.remove('active');
-  document.getElementById('sp-form-view').classList.add('active');
+  showPanelView('form');
 };
 
-window.closeSPForm=()=>{
-  document.getElementById('sp-form-view').classList.remove('active');
-  document.getElementById('sp-lote-view').classList.add('active');
-};
+window.closeSPForm=()=>{ showPanelView('lote'); };
 
 // confirmarSP usa el mismo confirmar pero referencia inputs del sfv-body
 window.confirmarSP=async(tipo)=>{
-  // Mapear IDs del panel al confirmar estándar
   await confirmar(tipo);
   closeSPForm();
   if(loteSelId) showLoteView(loteSelId);
