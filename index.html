@@ -489,12 +489,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div class="bs-chip" onclick="selOne(this,'mover-cant-chips','s-blue');document.getElementById('f-cant-mov').style.display='block'">Parcial</div>
         </div>
         <div class="f-group" id="f-cant-mov" style="display:none"><label class="f-label">Cantidad</label><input class="f-input" type="number" id="f-cant-mover" placeholder="ej: 20" min="1"></div>
-        <div class="f-label" style="margin-bottom:5px">Destino</div>
-        <div class="chips-wrap" id="destino-tipo-chips">
-          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('lote')">Otro lote</div>
-          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('parcela')">Otra parcela</div>
-          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('campo')">Otro campo</div>
-          <div class="bs-chip" onclick="selOne(this,'destino-tipo-chips','s-blue');showDestino('corral')">Corral / manga</div>
+        <div class="f-group">
+          <label class="f-label">Destino</label>
+          <select class="f-select" id="destino-tipo-select" onchange="showDestino(this.value)">
+            <option value="">— Seleccionar destino —</option>
+            <option value="lote">Otro lote</option>
+            <option value="parcela">Otra parcela</option>
+            <option value="campo">Otro campo</option>
+            <option value="corral">Corral / manga</option>
+          </select>
         </div>
         <div class="f-group" id="destino-lote-wrap" style="display:none"><label class="f-label">Lote destino</label><select class="f-select" id="f-destino"></select></div>
         <div class="f-group" id="destino-parcela-wrap" style="display:none"><label class="f-label">Parcela destino</label><select class="f-select" id="f-destino-parcela"><option>Parcela 1</option><option>Parcela 2</option><option>Parcela 3</option></select></div>
@@ -1254,6 +1257,9 @@ window.confirmarSP=async(tipo)=>{
 };
 window.openFam=(id)=>{
   const lote=lotes.find(l=>l.id===id); if(!lote) return;
+  // Centrar mapa en el lote
+  const poly=pastLayers[id];
+  if(poly) pastMap.flyToBounds(poly.getBounds(),{padding:[40,160],duration:0.4,maxZoom:16});
   const mov=lastMov(id);
   const estadoReal=getEstadoReal(lote,mov);
   const color=EC[estadoReal]||'#777';
@@ -1309,6 +1315,7 @@ window.openBS=tipo=>{
   document.getElementById('bs-sub').textContent=lote?`${lote.nombre} · ${lote.ha} ha · ${lote.cultivo||''}`:'';
   // Reset chips
   document.querySelectorAll('.chips-wrap .bs-chip').forEach(c=>c.className='bs-chip');
+  const destinoSel=document.getElementById('destino-tipo-select'); if(destinoSel) destinoSel.value='';
   // Reset campos cantidad
   ['f-cant','f-cant-mover','f-cant-baja','f-rp-baja','f-obs-ent','f-obs-mov','f-obs-baja','f-obs-parto','f-obs-estado'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
