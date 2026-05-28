@@ -273,6 +273,9 @@ const db=getFirestore(app);
 
 // ── STATE ──
 let campos=[],lotes=[],movimientos=[],animales=[];
+// Exponer estado a window para acceso desde onclick handlers
+Object.defineProperty(window,'_animales',{get:()=>animales});
+Object.defineProperty(window,'_selSet',{get:()=>selSet});
 let campoActivo=null;
 let pastLayers={};
 let wins={},zTop=300,dragWin=null,dwOX=0,dwOY=0;
@@ -1101,11 +1104,10 @@ window.cerrarEvModal=()=>{
 };
 
 window.ctxEvento=(animalId,tipo)=>{
-  console.log('ctxEvento called',animalId,tipo);
   const ids=selSet.has(animalId)&&selSet.size>1?[...selSet]:[animalId];
   evAnimalIds=ids;
   const a=animales.find(x=>x.id===ids[0]);
-  console.log('animal found',a,'ids',ids);
+  alert('ctxEvento: id='+animalId+' encontrado='+(!!a)+' animales.length='+animales.length);
   if(!a)return;
   const hoy=new Date().toISOString().split('T')[0];
   const multi=ids.length>1;
