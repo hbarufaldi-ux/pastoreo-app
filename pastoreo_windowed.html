@@ -234,11 +234,39 @@ html,body{height:100%;overflow:hidden;font-family:var(--f);color:var(--tx);backg
 </div>
 <div id="taskbar"></div>
 <div id="ctx-menu"></div>
+<div id="ver-menu" style="display:none;position:fixed;background:rgba(255,255,255,0.98);border:0.5px solid var(--b2);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:9000;min-width:160px;padding:4px 0;"></div>
+
+<!-- Modal de eventos -->
+<div id="ev-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:8000;align-items:center;justify-content:center;" onclick="if(event.target===this)cerrarEvModal();">
+  <div id="ev-modal" style="background:var(--bg,#fff);border:0.5px solid var(--b2,#ddd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);width:340px;max-width:95vw;padding:20px;position:relative;font-family:var(--f);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span id="ev-title" style="font-size:14px;font-weight:700;color:var(--tx,#111);"></span>
+      <button onclick="cerrarEvModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--mt,#888);line-height:1;">×</button>
+    </div>
+    <div id="ev-body"></div>
+  </div>
+</div>
+
+<style>
+.ev-field{margin-bottom:12px;}
+.ev-field label{display:block;font-size:11px;font-weight:600;color:var(--mt,#888);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.ev-input{width:100%;padding:7px 10px;border:0.5px solid var(--b2,#ddd);border-radius:7px;font-size:13px;background:var(--s1,#fafafa);color:var(--tx,#111);outline:none;font-family:var(--f);}
+.ev-input:focus{border-color:var(--bl,#3b82f6);}
+.ev-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.ev-chip{padding:5px 12px;border-radius:20px;border:0.5px solid var(--b2,#ddd);font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--tx,#111);transition:all .12s;}
+.ev-chip.sel{background:var(--bl,#3b82f6);color:#fff;border-color:var(--bl,#3b82f6);}
+.ev-warn{background:rgba(245,158,11,0.1);border:0.5px solid #f59e0b;border-radius:7px;padding:8px 10px;font-size:12px;color:#b45309;margin-bottom:12px;}
+.ev-confirm-btn{width:100%;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:var(--bl,#3b82f6);color:#fff;margin-top:4px;transition:opacity .15s;}
+.ev-confirm-btn:hover{opacity:.88;}
+.ev-confirm-btn.green{background:#16a34a;}
+.ev-confirm-btn.amber{background:#d97706;}
+.ev-confirm-btn.red{background:#dc2626;}
+</style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getFirestore,collection,onSnapshot,addDoc,doc,writeBatch}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{getFirestore,collection,onSnapshot,addDoc,doc,writeBatch,updateDoc,arrayUnion}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app=initializeApp({apiKey:"AIzaSyDV0lNHdV38O4qOzP7tRDYmw-8gIWRxUq4",authDomain:"pastoreo-windowed.firebaseapp.com",projectId:"pastoreo-windowed",storageBucket:"pastoreo-windowed.firebasestorage.app",messagingSenderId:"173627711521",appId:"1:173627711521:web:80c1e92aa423a93571c360"});
 const db=getFirestore(app);
@@ -268,9 +296,14 @@ let mapMode='sat'; // sat | osm | hybrid
 layerSat.addTo(map);layerLabels.addTo(map);
 
 // Map right-click menu
+let _mapCtxHandled=false;
+let _polyCtxHandled=false;
 map.on('contextmenu',e=>{
   L.DomEvent.preventDefault(e.originalEvent);
   L.DomEvent.stopPropagation(e.originalEvent);
+  if(_polyCtxHandled){_polyCtxHandled=false;return;} // polígono ya lo manejó
+  _mapCtxHandled=true;
+  setTimeout(()=>{_mapCtxHandled=false;},0);
   showMapCtx(e.originalEvent,null);
 });
 window.toggleMapLayer=()=>{
@@ -354,7 +387,14 @@ function renderMapLotes(){
     const color=ocu?'#22c55e':'#f59e0b';
     const poly=L.polygon(latLngs,{color:ocu?'#16a34a':'#d97706',weight:2.5,fillColor:color,fillOpacity:ocu?0.35:0.2,dashArray:ocu?null:'5,4'}).addTo(map);
     poly.on('dblclick',e=>{L.DomEvent.stopPropagation(e);openLote(lote.id);});
-    poly.on('contextmenu',e=>{L.DomEvent.preventDefault(e.originalEvent);L.DomEvent.stopPropagation(e.originalEvent);window.showPolyCtx(e.originalEvent,lote);});
+    poly.on('contextmenu',e=>{
+      L.DomEvent.preventDefault(e.originalEvent);
+      L.DomEvent.stopPropagation(e.originalEvent);
+      _polyCtxHandled=true; // le avisa al handler del mapa que no haga nada
+      _mapCtxHandled=true;
+      setTimeout(()=>{_mapCtxHandled=false;},0);
+      window.showPolyCtx(e.originalEvent,lote);
+    });
     poly.on('mouseover',()=>{if(!draggingRPs)poly.setStyle({fillOpacity:ocu?0.5:0.35,color:'white',weight:3});});
     poly.on('mouseout',()=>{if(dropTarget!==lote.id)poly.setStyle({fillOpacity:ocu?0.35:0.2,color:ocu?'#16a34a':'#d97706',weight:2.5});});
     pastLayers[lote.id]=poly;
@@ -424,7 +464,7 @@ function mkPadron(key){
       </div>
     </div>
     <div class="vbar">
-      <button class="vbtn act" onclick="showVerMenu(event,'__padron__')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">Ver ▾</button>
+      <button class="vbtn act" id="ver-btn-__padron__" onmousedown="showVerMenu(event,'__padron__')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">Ver ▾</button>
       <div class="vsep"></div>
       <input class="padron-search" id="padron-search" placeholder="rp, categoría, estado, lote..." oninput="renderPadronWin()" style="flex:1;font-size:12px;padding:3px 8px;border:0.5px solid var(--b2);border-radius:5px;background:rgba(255,255,255,0.7);color:var(--tx);outline:none;font-family:var(--f);">
     </div>
@@ -532,7 +572,9 @@ function mkWin(loteId){
       </div>
     </div>
     <div class="vbar">
-      <button class="vbtn act" id="ver-btn-${lk}" onclick="showVerMenu(event,'${loteId}')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">Ver ▾</button>
+      <button class="vbtn act" id="ver-btn-${lk}" onmousedown="showVerMenu(event,'${loteId}')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">${VIEW_LABELS[curV]||'Ver'} ▾</button>
+      <div class="vsep"></div>
+      <input id="lote-search-${lk}" data-loteid="${loteId}" placeholder="rp, categoría, estado..." style="flex:1;font-size:12px;padding:3px 8px;border:0.5px solid var(--b2);border-radius:5px;background:rgba(255,255,255,0.7);color:var(--tx);outline:none;font-family:var(--f);">
       <div class="vsep"></div>
       <button class="vbtn${winTab&&winTab[loteId]==='hist'?' act':''}" id="htab-${lk}" onclick="setWinTab('${loteId}','hist')" title="Historia">≋</button>
       <button class="vbtn${!winTab||winTab[loteId]!=='hist'?' act':''}" id="gtab-${lk}" onclick="setWinTab('${loteId}','grid')" title="Animales">⊞</button>
@@ -540,6 +582,9 @@ function mkWin(loteId){
     <div class="v${viewSt[loteId]||'sm'}" id="vwrap-${lk}" style="display:${winTab&&winTab[loteId]==='hist'?'none':'flex'};flex-direction:column;flex:1;overflow:hidden;"><div class="gwrap" id="grid-${lk}"></div></div>
     <div id="hist-${lk}" style="flex:1;overflow-y:auto;padding:12px 14px;display:${winTab&&winTab[loteId]==='hist'?'block':'none'};"></div>`;
   w.addEventListener('mousedown',e=>{if(!e.target.closest('.wctls'))focus(loteId);});
+  // Search input listener
+  const searchEl=w.querySelector('#lote-search-'+lk);
+  if(searchEl)searchEl.addEventListener('input',()=>renderGrid(loteId));
   return w;
 }
 
@@ -619,11 +664,21 @@ function renderGrid(loteId){
   }
   const v=viewSt[loteId]||'sm';
   const s=sortSt[loteId]||{by:'rp',dir:1};
-  if(!anim.length){
-    g.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--mt);padding:30px;text-align:center;font-size:12px;">Sin animales con RP asignado</div>`;
+  // Filtro de búsqueda
+  const q=(document.getElementById('lote-search-'+lk)?.value||'').toLowerCase().trim();
+  let animFilt=anim;
+  if(q){
+    animFilt=anim.filter(a=>
+      (a.rp||'').toString().toLowerCase().includes(q)||
+      (a.estadoRepro||'').toLowerCase().includes(q)||
+      (a.categoria||'').toLowerCase().includes(q)
+    );
+  }
+  if(!animFilt.length){
+    g.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--mt);padding:30px;text-align:center;font-size:12px;">${q?'Sin resultados para "'+q+'"':'Sin animales con RP asignado'}</div>`;
     return;
   }
-  const sorted=[...anim].sort((a,b)=>{
+  const sorted=[...animFilt].sort((a,b)=>{
     if(s.by==='rp')return((a.rp||'').toString().localeCompare((b.rp||'').toString()))*s.dir;
     if(s.by==='est')return((a.estadoRepro||'').localeCompare(b.estadoRepro||''))*s.dir;
     return 0;
@@ -646,7 +701,13 @@ window.setView=(loteId,v)=>{
   viewSt[loteId]=v;
   const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
   const vw=document.getElementById('vwrap-'+lk);
-  if(vw)vw.className='v'+v;
+  if(vw){
+    vw.className='v'+v;
+    // forzar reflow
+    vw.style.display='none';
+    vw.offsetHeight;
+    vw.style.display='flex';
+  }
   renderGrid(loteId);
 };
 
@@ -672,25 +733,30 @@ window.startDW=(e,key)=>{
 let rbanding=false,rbX0=0,rbY0=0;
 const rband=document.getElementById('rband');
 
-let lastClickId=null,lastClickTime=0;
+let lastClickId=null,lastClickTime=0,lastSelId=null;
+let _pendingShift=false,_pendingCtrl=false;
 window.cDown=(e,id)=>{
   if(e.button!==0)return;
-  // Detect double click to skip selection
+  // Detect double click
   const now=Date.now();
   if(id===lastClickId&&now-lastClickTime<400){
-    // Double click — clear timer, don't select
     clearTimeout(pressTimer);pressTimer=null;
     lastClickId=null;lastClickTime=0;
     return;
   }
   lastClickId=id;lastClickTime=now;
-  // If already selected, drag immediately
-  if(selSet.has(id)&&modoSel){
+  _pendingShift=e.shiftKey;
+  _pendingCtrl=e.ctrlKey||e.metaKey;
+  // Si ya seleccionada y sin modificadores: preparar drag
+  if(selSet.has(id)&&modoSel&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey){
     selSrc=document.getElementById('card-'+id)?.dataset.lote;
-    draggingRPs=true;
-    ghost.textContent=`${selSet.size} →`;
-    ghost.style.left=(e.clientX+12)+'px';ghost.style.top=(e.clientY-14)+'px';
-    ghost.style.display='block';
+    pressTimer=setTimeout(()=>{
+      pressTimer=null;
+      draggingRPs=true;
+      ghost.textContent=`${selSet.size} →`;
+      ghost.style.left=(e.clientX+12)+'px';ghost.style.top=(e.clientY-14)+'px';
+      ghost.style.display='block';
+    },480);
     e.preventDefault();
     return;
   }
@@ -713,16 +779,46 @@ window.cUp=(e,id)=>{
   if(draggingRPs)return;
   if(!pressTimer)return;
   clearTimeout(pressTimer);pressTimer=null;
-  // Single click: toggle selection
-  if(selSet.has(id)){
-    selSet.delete(id);
-    document.getElementById('card-'+id)?.classList.remove('sel');
-    if(!selSet.size){modoSel=false;}
+  const loteId=document.getElementById('card-'+id)?.dataset.lote;
+  if(_pendingCtrl){
+    // Ctrl+click → toggle individual sin tocar el resto
+    if(selSet.has(id)){
+      selSet.delete(id);
+      document.getElementById('card-'+id)?.classList.remove('sel');
+      if(!selSet.size)modoSel=false;
+    } else {
+      modoSel=true;
+      selSet.add(id);
+      document.getElementById('card-'+id)?.classList.add('sel');
+      selSrc=loteId;
+    }
+    lastSelId=id;
+  } else if(_pendingShift&&lastSelId){
+    // Shift+click → seleccionar rango en el DOM del mismo lote
+    modoSel=true;
+    selSrc=loteId;
+    const grid=document.getElementById('card-'+id)?.closest('.gwrap');
+    if(grid){
+      const cards=[...grid.querySelectorAll('.rpc')];
+      const iA=cards.findIndex(c=>c.dataset.id===lastSelId);
+      const iB=cards.findIndex(c=>c.dataset.id===id);
+      if(iA>=0&&iB>=0){
+        const [from,to]=[Math.min(iA,iB),Math.max(iA,iB)];
+        cards.forEach((c,i)=>{
+          if(i>=from&&i<=to){selSet.add(c.dataset.id);c.classList.add('sel');}
+        });
+      }
+    }
+    lastSelId=id;
   } else {
+    // Click simple → selecciona solo esta, deselecciona el resto
+    selSet.clear();
+    document.querySelectorAll('.rpc.sel').forEach(c=>c.classList.remove('sel'));
     modoSel=true;
     selSet.add(id);
     document.getElementById('card-'+id)?.classList.add('sel');
-    selSrc=document.getElementById('card-'+id)?.dataset.lote;
+    selSrc=loteId;
+    lastSelId=id;
   }
 };
 window.openFichaCard=(id)=>{
@@ -744,7 +840,7 @@ document.addEventListener('keydown',e=>{
 
 // Rubber band on gwrap background
 document.addEventListener('contextmenu',e=>{
-  // Prevent default everywhere to avoid browser menu
+  if(_mapCtxHandled)return; // ya manejado por mapa o polígono
   const win=e.target.closest('.win');
   const onRpc=e.target.closest('.rpc');
   const onCtx=e.target.closest('#ctx-menu');
@@ -752,7 +848,6 @@ document.addEventListener('contextmenu',e=>{
   if(onCtx)return;
   e.preventDefault();
   if(win&&!onRpc){
-    // Empty area in window
     const loteId=win.dataset.key;
     showWinCtx(e,loteId);
     return;
@@ -905,6 +1000,10 @@ window.doConfirm=async()=>{
 let ctxAnimalId=null,ctxLoteId=null;
 window.showCtx=(e,animalId,loteId)=>{
   e.preventDefault();e.stopPropagation();
+  // Solo abrir menú si la card ya está seleccionada
+  if(!selSet.has(animalId))return;
+  _mapCtxHandled=true;
+  setTimeout(()=>{_mapCtxHandled=false;},0);
   ctxAnimalId=animalId;ctxLoteId=loteId;
   const a=animales.find(x=>x.id===animalId);
   if(!a)return;
@@ -914,11 +1013,11 @@ window.showCtx=(e,animalId,loteId)=>{
     <div class="ctx-item" onclick="openFichaCard('${animalId}');closeCtx()">Ver ficha</div>
     <div class="ctx-sep"></div>
     <div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Registrar evento</div>
-    <div class="ctx-item" onclick="ctxEvento('${animalId}','tacto');closeCtx()">Tacto</div>
-    <div class="ctx-item" onclick="ctxEvento('${animalId}','celo');closeCtx()">Celo</div>
-    <div class="ctx-item" onclick="ctxEvento('${animalId}','parto');closeCtx()">Parto</div>
-    <div class="ctx-item" onclick="ctxEvento('${animalId}','aborto');closeCtx()">Aborto</div>
-    <div class="ctx-item" onclick="ctxEvento('${animalId}','servicio');closeCtx()">Servicio</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','tacto')">Tacto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','celo')">Celo</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','parto')">Parto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','aborto')">Aborto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','servicio')">Servicio</div>
     <div class="ctx-sep"></div>
     <div class="ctx-item" onclick="ctxSeleccionar('${animalId}','${loteId}');closeCtx()">Seleccionar</div>
     <div class="ctx-item" onclick="ctxSelAll('${loteId}');closeCtx()">Seleccionar todos</div>
@@ -932,9 +1031,13 @@ window.showCtx=(e,animalId,loteId)=>{
 };
 function closeCtx(){document.getElementById('ctx-menu').style.display='none';}
 window.closeCtx=closeCtx;
-document.addEventListener('click',()=>closeCtx());
+document.addEventListener('click',e=>{
+  if(e.button===0&&!e.target.closest('#ctx-menu'))closeCtx();
+});
+// closeCtx on contextmenu only when not in a win o map
 document.addEventListener('contextmenu',e=>{
-  if(!e.target.closest('.rpc'))closeCtx();
+  if(_mapCtxHandled)return;
+  if(!e.target.closest('.rpc')&&!e.target.closest('.win')&&!e.target.closest('#map')&&!e.target.closest('#ctx-menu'))closeCtx();
 });
 window.ctxSeleccionar=(id,loteId)=>{
   modoSel=true;
@@ -989,29 +1092,115 @@ async function ctxAsignarLabelById(ids,labelId){
 }
 
 // ── EVENTS ──
-window.ctxEvento=async(animalId,tipo)=>{
+// ── EVENTO MODAL ──
+let evAnimalIds=[];
+
+window.cerrarEvModal=()=>{
+  document.getElementById('ev-overlay').style.display='none';
+  evAnimalIds=[];
+};
+
+window.ctxEvento=(animalId,tipo)=>{
+  console.log('ctxEvento called',animalId,tipo);
   const ids=selSet.has(animalId)&&selSet.size>1?[...selSet]:[animalId];
-  const fecha=new Date().toISOString().split('T')[0];
-  // Prompt for date
-  const f=prompt('Fecha del evento ('+tipo+'):',fecha);
-  if(!f)return;
-  const estadoMap={tacto:'Tacto',celo:'Celo',parto:'Parto',aborto:'Aborto',servicio:'Servicio'};
-  const nuevoEstado={tacto:null,celo:'Celo',parto:null,aborto:'Aborto',servicio:'Servicio'}[tipo];
+  evAnimalIds=ids;
+  const a=animales.find(x=>x.id===ids[0]);
+  console.log('animal found',a,'ids',ids);
+  if(!a)return;
+  const hoy=new Date().toISOString().split('T')[0];
+  const multi=ids.length>1;
+  const titles={tacto:'Tacto',celo:'Celo',parto:'Parto',aborto:'Aborto',servicio:'Servicio'};
+  document.getElementById('ev-title').textContent=titles[tipo]+(multi?` · ${ids.length} animales`:'');
+
+  let body='';
+  // Fecha siempre
+  body+=`<div class="ev-field"><label>Fecha</label><input class="ev-input" type="date" id="ev-fecha" value="${hoy}"></div>`;
+
+  if(tipo==='tacto'){
+    if(!multi&&a.estadoRepro==='Preñada') body+=`<div class="ev-warn">⚠ Animal preñada — verificar diagnóstico</div>`;
+    body+=`<div class="ev-field"><label>Resultado</label><div class="ev-chips" id="ev-resultado-chips">
+      ${['Preñada','Vacia','Aborto','Anestro','Otro'].map(r=>`<div class="ev-chip" onclick="evSelChip(this,'ev-resultado-chips')">${r}</div>`).join('')}
+    </div></div>`;
+    body+=`<div class="ev-field"><label>Tratamiento / Droga (opcional)</label><input class="ev-input" type="text" id="ev-trat" placeholder="GnRH, Progesterona..."></div>`;
+    body+=`<div class="ev-field"><label>Observaciones (opcional)</label><input class="ev-input" type="text" id="ev-obs" placeholder="opcional..."></div>`;
+    body+=`<button class="ev-confirm-btn" onclick="confirmarEvento('tacto')">Confirmar tacto</button>`;
+  } else if(tipo==='celo'){
+    if(!multi&&a.estadoRepro==='Preñada') body+=`<div class="ev-warn">⚠ Animal preñada — posible error de diagnóstico</div>`;
+    body+=`<div class="ev-field"><label>Observaciones (opcional)</label><input class="ev-input" type="text" id="ev-obs" placeholder="opcional..."></div>`;
+    body+=`<button class="ev-confirm-btn" style="background:#a855f7" onclick="confirmarEvento('celo')">Registrar celo</button>`;
+  } else if(tipo==='servicio'){
+    body+=`<div class="ev-field"><label>Tipo de servicio</label><div class="ev-chips" id="ev-servicio-chips">
+      ${['Toro','IA','IATF'].map(r=>`<div class="ev-chip" onclick="evSelChip(this,'ev-servicio-chips')">${r}</div>`).join('')}
+    </div></div>`;
+    body+=`<div class="ev-field"><label>Toro / Partida (opcional)</label><input class="ev-input" type="text" id="ev-toro" placeholder="nombre o número..."></div>`;
+    body+=`<div class="ev-field"><label>Observaciones (opcional)</label><input class="ev-input" type="text" id="ev-obs" placeholder="opcional..."></div>`;
+    body+=`<button class="ev-confirm-btn green" onclick="confirmarEvento('servicio')">Confirmar servicio</button>`;
+  } else if(tipo==='parto'){
+    body+=`<div class="ev-field"><label>Resultado</label><div class="ev-chips" id="ev-parto-chips">
+      ${['Vivo','Muerto','Gemelar'].map(r=>`<div class="ev-chip" onclick="evSelChip(this,'ev-parto-chips')">${r}</div>`).join('')}
+    </div></div>`;
+    if(!multi) body+=`<div class="ev-field"><label>RP de la cría (opcional)</label><input class="ev-input" type="text" id="ev-rp-cria" placeholder="ej: 2301"></div>`;
+    body+=`<div class="ev-field"><label>Observaciones (opcional)</label><input class="ev-input" type="text" id="ev-obs" placeholder="opcional..."></div>`;
+    body+=`<button class="ev-confirm-btn green" onclick="confirmarEvento('parto')">Confirmar parto</button>`;
+  } else if(tipo==='aborto'){
+    if(!multi&&a.estadoRepro!=='Preñada') body+=`<div class="ev-warn">⚠ Animal no estaba registrada como preñada</div>`;
+    body+=`<div class="ev-field"><label>Observaciones (opcional)</label><input class="ev-input" type="text" id="ev-obs" placeholder="opcional..."></div>`;
+    body+=`<button class="ev-confirm-btn red" onclick="confirmarEvento('aborto')">Registrar aborto</button>`;
+  }
+
+  document.getElementById('ev-body').innerHTML=body;
+  document.getElementById('ev-overlay').style.display='flex';
+  closeCtx();
+};
+
+window.evSelChip=(el,groupId)=>{
+  document.querySelectorAll(`#${groupId} .ev-chip`).forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+window.confirmarEvento=async(tipo)=>{
+  const fecha=document.getElementById('ev-fecha')?.value;
+  if(!fecha){toast('Ingresá una fecha');return;}
+  const obs=document.getElementById('ev-obs')?.value||'';
+  const ids=evAnimalIds;
+  if(!ids.length)return;
+
   try{
     const batch=writeBatch(db);
-    ids.forEach(id=>{
-      const updates={['ultimo'+tipo.charAt(0).toUpperCase()+tipo.slice(1)]:f};
-      if(tipo==='tacto')updates.fechaTacto=f;
-      if(tipo==='parto'){updates.estadoRepro='Vacia';updates.fechaParto=f;}
-      if(tipo==='aborto'){updates.estadoRepro='Vacia';updates.fechaAborto=f;}
-      if(tipo==='celo')updates.estadoRepro='Celo';
-      if(tipo==='servicio'){updates.estadoRepro='Servicio';updates.fechaServicio=f;}
-      batch.update(doc(db,'animales',id),updates);
+    for(const id of ids){
       const a=animales.find(x=>x.id===id);
-      if(a)Object.assign(a,updates);
-    });
+      if(!a)continue;
+      let updates={};
+      if(tipo==='tacto'){
+        const resultado=document.querySelector('#ev-resultado-chips .ev-chip.sel')?.textContent;
+        if(!resultado){toast('Seleccioná el resultado del tacto');return;}
+        updates={estadoRepro:resultado,fechaTacto:fecha,
+          historial:arrayUnion({tipo:'tacto',fecha,resultado,tratamiento:document.getElementById('ev-trat')?.value||'',observaciones:obs})};
+      } else if(tipo==='celo'){
+        updates={historial:arrayUnion({tipo:'celo',fecha,observaciones:obs,estadoPrevia:a.estadoRepro||''})};
+      } else if(tipo==='servicio'){
+        const tipoServ=document.querySelector('#ev-servicio-chips .ev-chip.sel')?.textContent||'';
+        const toro=document.getElementById('ev-toro')?.value||'';
+        updates={estadoRepro:'Inseminada',fechaServicio:fecha,toro,
+          historial:arrayUnion({tipo:'servicio',fecha,tipoServicio:tipoServ,toro,observaciones:obs})};
+      } else if(tipo==='parto'){
+        const resultado=document.querySelector('#ev-parto-chips .ev-chip.sel')?.textContent||'';
+        const rpCria=document.getElementById('ev-rp-cria')?.value||'';
+        updates={estadoRepro:'ConCria',
+          historial:arrayUnion({tipo:'parto',fecha,resultado,rpCria,observaciones:obs})};
+        if(rpCria)updates.rpCria=rpCria;
+      } else if(tipo==='aborto'){
+        updates={estadoRepro:'Vacia',
+          historial:arrayUnion({tipo:'aborto',fecha,observaciones:obs}),
+          abortos:(a.abortos||0)+1};
+      }
+      batch.update(doc(db,'animales',id),updates);
+      Object.assign(a,updates);
+    }
     await batch.commit();
-    toast(estadoMap[tipo]+' registrado para '+ids.length+' animal'+(ids.length!==1?'es':''));
+    cerrarEvModal();
+    const nombres={tacto:'Tacto',celo:'Celo',servicio:'Servicio',parto:'Parto',aborto:'Aborto'};
+    toast(`✓ ${nombres[tipo]} registrado${ids.length>1?' para '+ids.length+' animales':''}`);
     Object.keys(wins).forEach(k=>{if(lotes.find(l=>l.id===k))renderGrid(k);});
     renderPadronWin();
   }catch(err){console.error(err);toast('Error: '+err.message);}
@@ -1273,17 +1462,31 @@ const VER_OPTIONS=[
   {v:'lg',label:'Iconos grandes'},
 ];
 window.showVerMenu=(e,loteId)=>{
-  e.stopPropagation();
-  closeCtx();
-  const menu=document.getElementById('ctx-menu');
+  e.stopPropagation();e.preventDefault();
+  const menu=document.getElementById('ver-menu');
+  if(menu.style.display==='block'){menu.style.display='none';return;}
   const cur=viewSt[loteId]||'sm';
-  menu.innerHTML=`<div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Vista</div>`+
+  menu.innerHTML=`<div style="padding:4px 10px 2px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Vista</div>`+
     VER_OPTIONS.map(o=>`<div class="ctx-item${cur===o.v?' act':''}" style="${cur===o.v?'font-weight:600;color:var(--bl);':''}" onclick="setViewFromMenu('${loteId}','${o.v}')">${o.label}${cur===o.v?' ✓':''}</div>`).join('');
-  const rect=e.target.getBoundingClientRect();
-  menu.style.cssText=`display:block;left:${rect.left}px;top:${rect.bottom+2}px;min-width:160px;`;
+  const rect=e.currentTarget.getBoundingClientRect();
+  menu.style.left=rect.left+'px';
+  menu.style.top=(rect.bottom+2)+'px';
+  menu.style.display='block';
+  // Cerrar al próximo click fuera del menú
+  const closeOnNext=ev=>{
+    if(!ev.target.closest('#ver-menu')){
+      menu.style.display='none';
+      document.removeEventListener('mousedown',closeOnNext,true);
+    }
+  };
+  setTimeout(()=>document.addEventListener('mousedown',closeOnNext,true),0);
 };
 window.setViewFromMenu=(loteId,v)=>{
-  closeCtx();
+  document.getElementById('ver-menu').style.display='none';
+  const label=VER_OPTIONS.find(o=>o.v===v)?.label||'Ver';
+  const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
+  const btn=document.getElementById('ver-btn-'+lk);
+  if(btn)btn.textContent=label+' ▾';
   if(loteId==='__padron__'){setPadronView(v);}
   else{setView(loteId,v);}
 };
