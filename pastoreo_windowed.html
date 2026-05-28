@@ -20,7 +20,7 @@
   --r:10px;--f:'Geist',system-ui,sans-serif;--m:'Geist Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;}
-html,body{height:100%;overflow:hidden;font-family:var(--f);color:var(--tx);background:var(--bg);cursor:default;}
+html,body{height:100%;overflow:hidden;font-family:var(--f);color:var(--tx);background:var(--bg);cursor:default;font-size:15px;}*{cursor:default!important;}a,button,select,.ctab,.padron-btn,.wctl,.vbtn,.sortsel,.fab,.task,.ctx-item,.cfd,.cfb button{cursor:pointer!important;}.leaflet-grab,.leaflet-crosshair,.leaflet-container{cursor:default!important;}.leaflet-dragging .leaflet-grab{cursor:grabbing!important;}
 
 /* MAP */
 #map{position:absolute;inset:0;top:52px;bottom:42px;z-index:1;}
@@ -53,14 +53,14 @@ html,body{height:100%;overflow:hidden;font-family:var(--f);color:var(--tx);backg
 
 /* Resize handles */
 .rh{position:absolute;z-index:20;}
-.rh-n{top:-3px;left:8px;right:8px;height:6px;cursor:n-resize;}
-.rh-s{bottom:-3px;left:8px;right:8px;height:6px;cursor:s-resize;}
-.rh-e{right:-3px;top:8px;bottom:8px;width:6px;cursor:e-resize;}
-.rh-w{left:-3px;top:8px;bottom:8px;width:6px;cursor:w-resize;}
-.rh-nw{top:-4px;left:-4px;width:10px;height:10px;cursor:nw-resize;}
-.rh-ne{top:-4px;right:-4px;width:10px;height:10px;cursor:ne-resize;}
-.rh-sw{bottom:-4px;left:-4px;width:10px;height:10px;cursor:sw-resize;}
-.rh-se{bottom:-4px;right:-4px;width:10px;height:10px;cursor:se-resize;}
+.rh-n{top:-3px;left:8px;right:8px;height:6px;cursor:n-resize!important;}
+.rh-s{bottom:-3px;left:8px;right:8px;height:6px;cursor:s-resize!important;}
+.rh-e{right:-3px;top:8px;bottom:8px;width:6px;cursor:e-resize!important;}
+.rh-w{left:-3px;top:8px;bottom:8px;width:6px;cursor:w-resize!important;}
+.rh-nw{top:-4px;left:-4px;width:10px;height:10px;cursor:nw-resize!important;}
+.rh-ne{top:-4px;right:-4px;width:10px;height:10px;cursor:ne-resize!important;}
+.rh-sw{bottom:-4px;left:-4px;width:10px;height:10px;cursor:sw-resize!important;}
+.rh-se{bottom:-4px;right:-4px;width:10px;height:10px;cursor:se-resize!important;}
 
 /* Titlebar */
 .wtb{height:40px;display:flex;align-items:center;padding:0 0 0 14px;border-bottom:0.5px solid var(--b);cursor:default;flex-shrink:0;background:rgba(255,255,255,0.5);}
@@ -193,8 +193,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--f);color:var(--tx);backg
 .task.act{background:white;border-color:var(--b2);color:var(--tx);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
 
 
+/* Labels */
+.label-tag{display:inline-block;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;background:rgba(109,53,181,0.1);color:#6d35b5;margin-top:3px;margin-right:2px;}
+
 /* Context menu */
-#ctx-menu{position:fixed;background:rgba(255,255,255,0.97);border:0.5px solid var(--b2);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:4px;z-index:9995;display:none;min-width:160px;}
+#ctx-menu{position:fixed;background:rgba(255,255,255,0.97);border:0.5px solid var(--b2);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:4px;z-index:9995;display:none;min-width:180px;}
 .ctx-item{padding:8px 14px;font-size:13px;border-radius:5px;cursor:pointer;color:var(--tx);display:flex;align-items:center;gap:8px;}
 .ctx-item:hover{background:var(--blb);color:var(--bl);}
 .ctx-item.red:hover{background:var(--rdb);color:var(--rd);}
@@ -250,17 +253,26 @@ let selSet=new Set(),selSrc=null,modoSel=false,draggingRPs=false,dropTarget=null
 let pressTimer=null,pendingSrc=null,pendingDst=null;
 let resizing=null,rsDir='',rsX0=0,rsY0=0,rsW0=0,rsH0=0,rsL0=0,rsT0=0;
 const viewSt={},sortSt={},winTab={};
+let labels=[]; // {id, name, color} stored locally + firebase
+const LABEL_COLORS=["#6d35b5","#1a5cb5","#1a7a3c","#8a5c00","#b51a1a","#0891b2"];
 const VIEWS=['xs','sm','md','lg'],VICONS={'xs':'☰','sm':'⊞','md':'▦','lg':'⊟'};
 const ghost=document.getElementById('ghost');
 
 // ── MAP ──
-const map=L.map('map',{zoomControl:false,attributionControl:false,preferCanvas:true}).setView([-33.005,-63.463],14);
+const map=L.map('map',{zoomControl:false,attributionControl:false,preferCanvas:true,doubleClickZoom:false}).setView([-33.005,-63.463],14);
 L.control.zoom({position:'topleft'}).addTo(map);
 const layerSat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
 const layerOSM=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 const layerLabels=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{maxZoom:19,opacity:0.75});
 let mapMode='sat'; // sat | osm | hybrid
 layerSat.addTo(map);layerLabels.addTo(map);
+
+// Map right-click menu
+map.on('contextmenu',e=>{
+  L.DomEvent.preventDefault(e.originalEvent);
+  L.DomEvent.stopPropagation(e.originalEvent);
+  showMapCtx(e.originalEvent,null);
+});
 window.toggleMapLayer=()=>{
   if(mapMode==='sat'){map.removeLayer(layerSat);map.removeLayer(layerLabels);layerOSM.addTo(map);mapMode='osm';document.getElementById('map-toggle-btn').textContent='Calle';}
   else if(mapMode==='osm'){layerSat.addTo(map);map.removeLayer(layerOSM);mapMode='hybrid';document.getElementById('map-toggle-btn').textContent='Híbrido';}
@@ -339,15 +351,17 @@ function renderMapLotes(){
     const latLngs=coords.map(c=>c.lat!==undefined?[c.lat,c.lng]:[c[0],c[1]]);
     const est=getEstado(lote.id);
     const ocu=!!est;
-    const color=ocu?'#1a7a3c':'#8a5c00';
-    const poly=L.polygon(latLngs,{color:'rgba(255,255,255,0.6)',weight:1.5,fillColor:color,fillOpacity:ocu?0.18:0.08,dashArray:ocu?null:'5,4'}).addTo(map);
-    poly.on('dblclick',()=>openLote(lote.id));
-    poly.on('mouseover',()=>{if(!draggingRPs)poly.setStyle({fillOpacity:ocu?0.28:0.15,color:'rgba(255,255,255,0.9)',weight:2});});
-    poly.on('mouseout',()=>{if(dropTarget!==lote.id)poly.setStyle({fillOpacity:ocu?0.18:0.08,color:'rgba(255,255,255,0.6)',weight:1.5});});
+    const color=ocu?'#22c55e':'#f59e0b';
+    const poly=L.polygon(latLngs,{color:ocu?'#16a34a':'#d97706',weight:2.5,fillColor:color,fillOpacity:ocu?0.35:0.2,dashArray:ocu?null:'5,4'}).addTo(map);
+    poly.on('dblclick',e=>{L.DomEvent.stopPropagation(e);openLote(lote.id);});
+    poly.on('contextmenu',e=>{L.DomEvent.preventDefault(e.originalEvent);L.DomEvent.stopPropagation(e.originalEvent);window.showPolyCtx(e.originalEvent,lote);});
+    poly.on('mouseover',()=>{if(!draggingRPs)poly.setStyle({fillOpacity:ocu?0.5:0.35,color:'white',weight:3});});
+    poly.on('mouseout',()=>{if(dropTarget!==lote.id)poly.setStyle({fillOpacity:ocu?0.35:0.2,color:ocu?'#16a34a':'#d97706',weight:2.5});});
     pastLayers[lote.id]=poly;
-    const center=poly.getBounds().getCenter();
-    const label=L.divIcon({className:'',html:`<div style="font-size:11px;font-weight:600;color:rgba(0,0,0,0.65);text-shadow:0 1px 3px rgba(255,255,255,0.8);white-space:nowrap;pointer-events:none;text-align:center;">${lote.nombre}${est?`<br><span style="font-size:10px;font-weight:500;color:${color}">${est.total} cab</span>`:`<br><span style="font-size:10px;color:#8a5c00">desc</span>`}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
-    L.marker(center,{icon:label,interactive:false}).addTo(map);
+    // True centroid: average of polygon vertices
+    const centroid=(()=>{let la=0,ln=0;latLngs.forEach(p=>{la+=p[0];ln+=p[1];});return L.latLng(la/latLngs.length,ln/latLngs.length);})();
+    const label=L.divIcon({className:'',html:`<div style="font-size:11px;font-weight:600;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.8),0 0 8px rgba(0,0,0,0.5);white-space:nowrap;pointer-events:none;text-align:center;transform:translate(-50%,-50%);">${lote.nombre}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
+    L.marker(centroid,{icon:label,interactive:false}).addTo(map);
   });
 }
 
@@ -395,12 +409,14 @@ window.openPadron=openPadron;
 
 function mkPadron(key){
   const w=document.createElement('div');
-  w.className='win';w.dataset.key=key;const wp=winSizes[key];w.style.width=(wp?.width||360)+'px';w.style.height=(wp?.height||520)+'px';
+  w.className='win';w.dataset.key=key;const wp=winSizes[key];w.style.width=(wp?.width||400)+'px';w.style.height=(wp?.height||520)+'px';
   const lk=key.replace(/[^a-z0-9]/gi,'_');
+  if(!viewSt[key])viewSt[key]='padron';
+  const PVWS=['xs','sm','md','lg'];
   w.innerHTML=`
     ${mkHandles(key)}
     <div class="wtb" onmousedown="startDW(event,'${key}')">
-      <div class="wt">Padrón</div>
+      <div class="wt" style="font-size:16px;font-weight:600;">Padrón<span id="padron-sum" style="font-size:14px;font-weight:400;color:var(--mt);margin-left:12px;"></span></div>
       <div class="wctls">
         <div class="wctl" onclick="minWin('${key}')"><svg viewBox="0 0 10 10"><line x1="1" y1="8" x2="9" y2="8"/></svg></div>
         <div class="wctl" onclick="maxWin('${key}')"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"/></svg></div>
@@ -408,38 +424,90 @@ function mkPadron(key){
       </div>
     </div>
     <div class="vbar">
-      <span id="padron-count" class="lbadge" style="background:var(--blb);color:var(--bl)">—</span>
-      <input class="padron-search" id="padron-search" placeholder="Buscar RP, categoría, rodeo..." oninput="renderPadronWin()" style="flex:1;margin-left:4px;">
+      <button class="vbtn act" onclick="showVerMenu(event,'__padron__')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">Ver ▾</button>
+      <div class="vsep"></div>
+      <input class="padron-search" id="padron-search" placeholder="rp, categoría, estado, lote..." oninput="renderPadronWin()" style="flex:1;font-size:12px;padding:3px 8px;border:0.5px solid var(--b2);border-radius:5px;background:rgba(255,255,255,0.7);color:var(--tx);outline:none;font-family:var(--f);">
     </div>
-    <div class="vpadron" id="vwrap-${lk}" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="v${viewSt[key]==='padron'?'padron':viewSt[key]}" id="vwrap-${lk}" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
       <div class="gwrap" id="grid-${lk}"></div>
     </div>`;
   w.addEventListener('mousedown',e=>{if(!e.target.closest('.wctls'))focus(key);});
   return w;
 }
 
+window.setPadronView=(v)=>{
+  const key='__padron__';
+  const lk=key.replace(/[^a-z0-9]/gi,'_');
+  viewSt[key]=v;
+  const vw=document.getElementById('vwrap-'+lk);
+  if(vw)vw.className='v'+(v==='padron'?'padron':v);
+  const win=wins[key];
+  if(win){win.querySelectorAll('.vbtn').forEach((b,i)=>b.classList.toggle('act',['xs','sm','md','lg'][i]===v));}
+  renderPadronWin();
+};
+
 function renderPadronWin(){
   const key='__padron__';
   const lk=key.replace(/[^a-z0-9]/gi,'_');
   const g=document.getElementById('grid-'+lk);if(!g)return;
-  const q=(document.getElementById('padron-search')?.value||'').toLowerCase();
+  const q=(document.getElementById('padron-search')?.value||'').toLowerCase().trim();
   let anim=[...animales];
-  if(q)anim=anim.filter(a=>(a.rp||'').toString().toLowerCase().includes(q)||(a.categoria||'').toLowerCase().includes(q)||(a.rodeo||'').toLowerCase().includes(q));
-  anim.sort((a,b)=>(a.rp||'').toString().localeCompare((b.rp||'').toString()));
-  const cnt=document.getElementById('padron-count');
-  if(cnt)cnt.textContent=anim.length+' animales';
+  let sortBy='rp';
+
+  // Smart filter+sort from text
+  if(q){
+    // Detect sort intent
+    if(q.startsWith('rp'))sortBy='rp';
+    else if(q.startsWith('est')||q.startsWith('estado'))sortBy='estado';
+    else if(q.startsWith('cat')||q.startsWith('categoria'))sortBy='categoria';
+    else if(q.startsWith('lote')||q.startsWith('rodeo'))sortBy='lote';
+    // Filter by text
+    const fq=q.replace(/^(rp|estado|est|categoria|cat|lote|rodeo)\s*/,'');
+    if(fq)anim=anim.filter(a=>
+      (a.rp||'').toString().toLowerCase().includes(fq)||
+      (a.estadoRepro||'').toLowerCase().includes(fq)||
+      (a.categoria||'').toLowerCase().includes(fq)||
+      (a.rodeo||'').toLowerCase().includes(fq)||
+      (a.labels||[]).some(lid=>{const lb=labels.find(l=>l.id===lid);return lb&&lb.name.toLowerCase().includes(fq);})
+    );
+  }
+
+  // Sort
+  anim.sort((a,b)=>{
+    if(sortBy==='estado')return(a.estadoRepro||'').localeCompare(b.estadoRepro||'');
+    if(sortBy==='categoria')return(a.categoria||'').localeCompare(b.categoria||'');
+    if(sortBy==='lote')return(a.rodeo||'').localeCompare(b.rodeo||'');
+    return(a.rp||'').toString().localeCompare((b.rp||'').toString(),undefined,{numeric:true});
+  });
+
+  // Update sum in header
+  const sum=document.getElementById('padron-sum');
+  if(sum)sum.textContent=anim.length+' animales';
+
+  const v=viewSt[key]||'padron';
+  // Render cards based on view
   g.innerHTML=anim.map(a=>{
     const ec=a.estadoRepro==='Preñada'?'p':a.estadoRepro==='Vacia'?'v':'a';
     const loteOrigen=a.rodeo?lotes.find(l=>l.nombre===a.rodeo)?.id||'__padron__':'__padron__';
     const sel=selSet.has(a.id);
-    return `<div class="rpc${sel?' sel':''}" id="card-${a.id}" data-id="${a.id}" data-lote="${loteOrigen}"
-      onmousedown="cDown(event,'${a.id}')" onmouseup="cUp(event,'${a.id}')" onmouseleave="cLeave()" oncontextmenu="showCtx(event,'${a.id}','__padron__')">
-      <div class="sd"></div>
-      <div class="cn">RP ${a.rp||'—'}</div>
-      <div class="cc">${a.categoria||'—'}</div>
-      <div class="cr">${a.rodeo||'sin lote'}</div>
-      <div class="ce ${ec}">${a.estadoRepro||'—'}</div>
-    </div>`;
+    const baseAttrs=`class="rpc${sel?' sel':''}" id="card-${a.id}" data-id="${a.id}" data-lote="${loteOrigen}" onmousedown="cDown(event,'${a.id}')" onmouseup="cUp(event,'${a.id}')" ondblclick="openFichaCard('${a.id}')" onmouseleave="cLeave()" oncontextmenu="showCtx(event,'${a.id}','__padron__')"`;
+    const pLblTags=(a.labels||[]).map(lid=>{const lb=labels.find(l=>l.id===lid);return lb?`<span class='label-tag' style='background:${lb.color}22;color:${lb.color};'>${lb.name}</span>`:''}).join('');
+    if(v==='padron'||v==='xs'){
+      return `<div ${baseAttrs}>
+        <div class="sd"></div>
+        <div class="cn">RP ${a.rp||'—'}</div>
+        <div class="cc">${a.categoria||'—'}</div>
+        <div class="cr">${a.rodeo||'sin lote'}</div>
+        <div class="ce ${ec}">${a.estadoRepro||'—'}</div>
+        ${pLblTags?'<div style="margin-left:4px;">'+pLblTags+'</div>':''}
+      </div>`;
+    } else if(v==='sm'){
+      return `<div ${baseAttrs}><div class="sd"></div><div class="cn">RP ${a.rp||'—'}</div><div class="cc">${(a.categoria||'').split(' ')[0]}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div></div>`;
+    } else if(v==='md'){
+      return `<div ${baseAttrs}><div class="sd"></div><div class="rpc-img"></div><div class="cn">RP ${a.rp||'—'}</div><div class="cc">${a.categoria||'—'}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div><div class="ci">${a.rodeo||'sin lote'}</div></div>`;
+    } else {
+      return `<div ${baseAttrs}><div class="sd"></div><div class="rpc-img"></div><div class="cn">RP ${a.rp||'—'}</div><div class="cc">${a.categoria||'—'}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div><div class="ci"><span>${a.rodeo||'sin lote'}</span><span>${a.fechaTacto||''}</span></div></div>`;
+    }
   }).join('');
 }
 window.renderPadronWin=renderPadronWin;
@@ -449,15 +517,14 @@ function mkWin(loteId){
   const w=document.createElement('div');
   w.className='win';w.dataset.key=loteId;const ws=winSizes[loteId];w.style.width=(ws?.width||400)+'px';w.style.height=(ws?.height||460)+'px';
   const est=getEstado(loteId);
-  const badge=est
-    ?`<span class="lbadge" style="background:var(--gnb);color:var(--gn)">${est.total} cab · ${lote.ha||0}ha</span>`
-    :`<span class="lbadge" style="background:var(--amb);color:var(--am)">${lote.ha||0}ha · libre</span>`;
+
   const lk=loteId.replace(/\s/g,'_');
-  const vbtns=VIEWS.map(v=>`<button class="vbtn${viewSt[loteId]===v?' act':''}" title="${v}" onclick="setView('${loteId}','${v}')">${VICONS[v]}</button>`).join('');
+  const curV=viewSt[loteId]||'sm';
+  const VIEW_LABELS={'xs':'Lista','sm':'Iconos pequeños','md':'Iconos medianos','lg':'Iconos grandes'};
   w.innerHTML=`
     ${mkHandles(loteId)}
     <div class="wtb" onmousedown="startDW(event,'${loteId}')">
-      <div class="wt">${lote.nombre||loteId}</div>
+      <div class="wt" style="font-size:16px;font-weight:600;">${lote.nombre||loteId}<span id="lote-sum-${lk}" style="font-size:14px;font-weight:400;color:var(--mt);margin-left:12px;"></span></div>
       <div class="wctls">
         <div class="wctl" onclick="minWin('${loteId}')"><svg viewBox="0 0 10 10"><line x1="1" y1="8" x2="9" y2="8"/></svg></div>
         <div class="wctl" onclick="maxWin('${loteId}')"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"/></svg></div>
@@ -465,14 +532,7 @@ function mkWin(loteId){
       </div>
     </div>
     <div class="vbar">
-      <div>${badge}</div>
-      <div style="display:flex;gap:2px;">${vbtns}</div>
-      <div class="vsep"></div>
-      <select class="sortsel" id="sort-${lk}" onchange="setSortSel('${loteId}',this.value)">
-        <option value="rp">↑ RP</option>
-        <option value="est">↑ Estado</option>
-        <option value="rp-d">↓ RP</option>
-      </select>
+      <button class="vbtn act" id="ver-btn-${lk}" onclick="showVerMenu(event,'${loteId}')" style="padding:0 10px;font-size:12px;gap:4px;width:auto;">Ver ▾</button>
       <div class="vsep"></div>
       <button class="vbtn${winTab&&winTab[loteId]==='hist'?' act':''}" id="htab-${lk}" onclick="setWinTab('${loteId}','hist')" title="Historia">≋</button>
       <button class="vbtn${!winTab||winTab[loteId]!=='hist'?' act':''}" id="gtab-${lk}" onclick="setWinTab('${loteId}','grid')" title="Animales">⊞</button>
@@ -526,11 +586,31 @@ function mkFicha(k,a){
 }
 
 function renderGrid(loteId){
-  const lk=loteId.replace(/\s/g,'_');
+  const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
   const g=document.getElementById('grid-'+lk);if(!g)return;
   const lote=lotes.find(l=>l.id===loteId);
   const nombre=lote?.nombre||'';
   const anim=animales.filter(a=>a.rodeo===nombre);
+  // Update title summary - animals + days occupied this year
+  const sumEl=document.getElementById('lote-sum-'+lk);
+  if(sumEl){
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+    const ano=hoy.getFullYear();
+    const ps=calcPeriodos(loteId);
+    const pAno=ps.filter(p=>new Date(p.ingreso+'T00:00:00').getFullYear()===ano||(!p.egreso));
+    let diasAno=0;
+    pAno.forEach(p=>{
+      const ini=new Date(p.ingreso+'T00:00:00');
+      const fin=p.egreso?new Date(p.egreso+'T00:00:00'):hoy;
+      const iniAno=new Date(ano,0,1);
+      const desde=ini<iniAno?iniAno:ini;
+      const hasta=fin>hoy?hoy:fin;
+      if(hasta>=desde)diasAno+=Math.round((hasta-desde)/864e5)+1;
+    });
+    const animTxt=anim.length?anim.length+' animales':'sin animales';
+    const diasTxt=diasAno?diasAno+'d ocupado en '+ano:'';
+    sumEl.textContent=diasTxt?animTxt+' · '+diasTxt:animTxt;
+  }
   // Update badge
   const badge=document.querySelector(`#vwrap-${lk}`)?.previousElementSibling?.querySelector('.lbadge');
   if(badge){
@@ -551,9 +631,10 @@ function renderGrid(loteId){
   const renderCard=(a)=>{
     const ec=a.estadoRepro==='Preñada'?'p':a.estadoRepro==='Vacia'?'v':'a';
     const sel=selSet.has(a.id);
-    const base=`class="rpc${sel?' sel':''}" id="card-${a.id}" data-id="${a.id}" data-lote="${loteId}" onmousedown="cDown(event,'${a.id}')" onmouseup="cUp(event,'${a.id}')" onmouseleave="cLeave()" oncontextmenu="showCtx(event,'${a.id}','${loteId}')" `;
+    const base=`class="rpc${sel?' sel':''}" id="card-${a.id}" data-id="${a.id}" data-lote="${loteId}" onmousedown="cDown(event,'${a.id}')" onmouseup="cUp(event,'${a.id}')" ondblclick="openFichaCard('${a.id}')" onmouseleave="cLeave()" oncontextmenu="showCtx(event,'${a.id}','${loteId}')" `;
     if(v==='xs') return `<div ${base}><div class="sd"></div><div class="cn">RP ${a.rp||a.id}</div><div class="cc">${a.categoria||'—'}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div></div>`;
-    if(v==='sm') return `<div ${base}><div class="sd"></div><div class="cn">RP ${a.rp||a.id}</div><div class="cc">${(a.categoria||'').split(' ')[0]}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div></div>`;
+    const lblTags=(a.labels||[]).map(lid=>{const lb=labels.find(l=>l.id===lid);return lb?`<span class='label-tag' style='background:${lb.color}22;color:${lb.color};'>${lb.name}</span>`:''}).join('');
+    if(v==='sm') return `<div ${base}><div class="sd"></div><div class="cn">RP ${a.rp||a.id}</div><div class="cc">${(a.categoria||'').split(' ')[0]}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div>${lblTags?'<div>'+lblTags+'</div>':''}</div>`;
     if(v==='md') return `<div ${base}><div class="sd"></div><div class="rpc-img"></div><div class="cn">RP ${a.rp||a.id}</div><div class="cc">${a.categoria||'—'}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div><div class="ci">${a.fechaTacto||''}</div></div>`;
     return `<div ${base}><div class="sd"></div><div class="rpc-img"></div><div class="cn">RP ${a.rp||a.id}</div><div class="cc">${a.categoria||'—'}</div><div class="ce ${ec}">${a.estadoRepro||'—'}</div><div class="ci"><span>${a.campo||''}</span><span>${a.fechaTacto||''}</span></div></div>`;
   };
@@ -563,9 +644,7 @@ function renderGrid(loteId){
 
 window.setView=(loteId,v)=>{
   viewSt[loteId]=v;
-  const lk=loteId.replace(/\s/g,'_');
-  const vbar=document.querySelector(`#vwrap-${lk}`)?.previousElementSibling;
-  if(vbar){vbar.querySelectorAll('.vbtn').forEach((b,i)=>b.classList.toggle('act',VIEWS[i]===v));}
+  const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
   const vw=document.getElementById('vwrap-'+lk);
   if(vw)vw.className='v'+v;
   renderGrid(loteId);
@@ -593,9 +672,19 @@ window.startDW=(e,key)=>{
 let rbanding=false,rbX0=0,rbY0=0;
 const rband=document.getElementById('rband');
 
+let lastClickId=null,lastClickTime=0;
 window.cDown=(e,id)=>{
   if(e.button!==0)return;
-  // Si ya esta seleccionada, drag inmediato
+  // Detect double click to skip selection
+  const now=Date.now();
+  if(id===lastClickId&&now-lastClickTime<400){
+    // Double click — clear timer, don't select
+    clearTimeout(pressTimer);pressTimer=null;
+    lastClickId=null;lastClickTime=0;
+    return;
+  }
+  lastClickId=id;lastClickTime=now;
+  // If already selected, drag immediately
   if(selSet.has(id)&&modoSel){
     selSrc=document.getElementById('card-'+id)?.dataset.lote;
     draggingRPs=true;
@@ -624,14 +713,22 @@ window.cUp=(e,id)=>{
   if(draggingRPs)return;
   if(!pressTimer)return;
   clearTimeout(pressTimer);pressTimer=null;
-  if(modoSel){
-    // toggle card in selection
-    if(selSet.has(id)){selSet.delete(id);document.getElementById('card-'+id)?.classList.remove('sel');}
-    else{selSet.add(id);document.getElementById('card-'+id)?.classList.add('sel');selSrc=document.getElementById('card-'+id)?.dataset.lote;}
-    if(!selSet.size)modoSel=false;
-  }else{
-    openFicha(id);
+  // Single click: toggle selection
+  if(selSet.has(id)){
+    selSet.delete(id);
+    document.getElementById('card-'+id)?.classList.remove('sel');
+    if(!selSet.size){modoSel=false;}
+  } else {
+    modoSel=true;
+    selSet.add(id);
+    document.getElementById('card-'+id)?.classList.add('sel');
+    selSrc=document.getElementById('card-'+id)?.dataset.lote;
   }
+};
+window.openFichaCard=(id)=>{
+  // Called from ondblclick on card
+  if(draggingRPs)return;
+  openFicha(id);
 };
 
 window.cLeave=()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}};
@@ -646,6 +743,25 @@ document.addEventListener('keydown',e=>{
 });
 
 // Rubber band on gwrap background
+document.addEventListener('contextmenu',e=>{
+  // Prevent default everywhere to avoid browser menu
+  const win=e.target.closest('.win');
+  const onRpc=e.target.closest('.rpc');
+  const onCtx=e.target.closest('#ctx-menu');
+  const onMap=e.target.closest('#map');
+  if(onCtx)return;
+  e.preventDefault();
+  if(win&&!onRpc){
+    // Empty area in window
+    const loteId=win.dataset.key;
+    showWinCtx(e,loteId);
+    return;
+  }
+  if(!win&&!onRpc&&!onMap){
+    closeCtx();
+  }
+});
+
 document.addEventListener('mousedown',e=>{
   if(resizing||dragWin)return;
   const grid=e.target.closest('.gwrap');
@@ -663,6 +779,7 @@ document.addEventListener('mousedown',e=>{
     selSet.clear();modoSel=false;
     document.querySelectorAll('.rpc.sel').forEach(c=>c.classList.remove('sel'));
   }
+  closeCtx();
 });
 
 document.addEventListener('mousemove',e=>{
@@ -729,7 +846,7 @@ document.addEventListener('mouseup',e=>{
   }
   if(draggingRPs){
     draggingRPs=false;ghost.style.display='none';
-    Object.entries(pastLayers).forEach(([lid,poly])=>poly.setStyle({fillColor:getEstado(lid)?'#1a7a3c':'#8a5c00',fillOpacity:getEstado(lid)?0.18:0.08,color:'rgba(255,255,255,0.6)',weight:1.5}));
+    Object.entries(pastLayers).forEach(([lid,poly])=>{const oe=!!getEstado(lid);poly.setStyle({fillColor:oe?'#22c55e':'#f59e0b',fillOpacity:oe?0.35:0.2,color:oe?'#16a34a':'#d97706',weight:2.5});});
     Object.values(wins).forEach(w=>w.style.outline='');
     if(dropTarget&&dropTarget!==selSrc&&selSet.size){pendingSrc=selSrc;pendingDst=dropTarget;showConfirm();}
     dropTarget=null;
@@ -792,11 +909,20 @@ window.showCtx=(e,animalId,loteId)=>{
   const a=animales.find(x=>x.id===animalId);
   if(!a)return;
   const menu=document.getElementById('ctx-menu');
+  const labelItems=labels.length?`<div class="ctx-sep"></div><div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Asignar label</div>`+labels.map(lb=>`<div class="ctx-item" onclick="ctxAsignarLabel('${animalId}','${lb.id}');closeCtx()" style="color:${lb.color};">● ${lb.name}</div>`).join(''):'';
   menu.innerHTML=`
-    <div class="ctx-item" onclick="openFicha('${animalId}');closeCtx()">Ver ficha</div>
+    <div class="ctx-item" onclick="openFichaCard('${animalId}');closeCtx()">Ver ficha</div>
+    <div class="ctx-sep"></div>
+    <div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Registrar evento</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','tacto');closeCtx()">Tacto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','celo');closeCtx()">Celo</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','parto');closeCtx()">Parto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','aborto');closeCtx()">Aborto</div>
+    <div class="ctx-item" onclick="ctxEvento('${animalId}','servicio');closeCtx()">Servicio</div>
     <div class="ctx-sep"></div>
     <div class="ctx-item" onclick="ctxSeleccionar('${animalId}','${loteId}');closeCtx()">Seleccionar</div>
     <div class="ctx-item" onclick="ctxSelAll('${loteId}');closeCtx()">Seleccionar todos</div>
+    ${labelItems}
     <div class="ctx-sep"></div>
     <div class="ctx-item red" onclick="ctxBaja('${animalId}');closeCtx()">Dar de baja</div>
   `;
@@ -820,105 +946,347 @@ window.ctxSelAll=(loteId)=>{
   cards.forEach(c=>{selSet.add(c.dataset.id);c.classList.add('sel');});
 };
 window.ctxBaja=(id)=>{
-  // placeholder - TODO: implement baja
   toast('Baja: pendiente de implementar');
+};
+
+// ── LABEL SYSTEM ──
+window.crearLabel=(fromLoteId)=>{
+  closeCtx();
+  const name=prompt('Nombre del label:');
+  if(!name||!name.trim())return;
+  const color=LABEL_COLORS[labels.length%LABEL_COLORS.length];
+  const lb={id:'lb-'+Date.now(),name:name.trim(),color};
+  labels.push(lb);
+  toast('Label "'+lb.name+'" creado');
+  // If animals selected, assign immediately
+  if(selSet.size){
+    const assign=confirm('Asignar a los '+selSet.size+' animales seleccionados?');
+    if(assign)ctxAsignarLabelById([...selSet],lb.id);
+  }
+};
+
+window.ctxAsignarLabel=async(animalId,labelId)=>{
+  const lb=labels.find(l=>l.id===labelId);if(!lb)return;
+  const ids=selSet.has(animalId)&&selSet.size>1?[...selSet]:[animalId];
+  await ctxAsignarLabelById(ids,labelId);
+};
+
+async function ctxAsignarLabelById(ids,labelId){
+  const lb=labels.find(l=>l.id===labelId);if(!lb)return;
+  const batch=writeBatch(db);
+  ids.forEach(id=>{
+    const a=animales.find(x=>x.id===id);if(!a)return;
+    const lbls=a.labels||[];
+    if(!lbls.includes(labelId)){
+      batch.update(doc(db,'animales',id),{labels:[...lbls,labelId]});
+      a.labels=[...lbls,labelId]; // local update
+    }
+  });
+  await batch.commit();
+  toast(lb.name+' asignado a '+ids.length+' animales');
+  Object.keys(wins).forEach(k=>{if(lotes.find(l=>l.id===k))renderGrid(k);});
+  renderPadronWin();
+}
+
+// ── EVENTS ──
+window.ctxEvento=async(animalId,tipo)=>{
+  const ids=selSet.has(animalId)&&selSet.size>1?[...selSet]:[animalId];
+  const fecha=new Date().toISOString().split('T')[0];
+  // Prompt for date
+  const f=prompt('Fecha del evento ('+tipo+'):',fecha);
+  if(!f)return;
+  const estadoMap={tacto:'Tacto',celo:'Celo',parto:'Parto',aborto:'Aborto',servicio:'Servicio'};
+  const nuevoEstado={tacto:null,celo:'Celo',parto:null,aborto:'Aborto',servicio:'Servicio'}[tipo];
+  try{
+    const batch=writeBatch(db);
+    ids.forEach(id=>{
+      const updates={['ultimo'+tipo.charAt(0).toUpperCase()+tipo.slice(1)]:f};
+      if(tipo==='tacto')updates.fechaTacto=f;
+      if(tipo==='parto'){updates.estadoRepro='Vacia';updates.fechaParto=f;}
+      if(tipo==='aborto'){updates.estadoRepro='Vacia';updates.fechaAborto=f;}
+      if(tipo==='celo')updates.estadoRepro='Celo';
+      if(tipo==='servicio'){updates.estadoRepro='Servicio';updates.fechaServicio=f;}
+      batch.update(doc(db,'animales',id),updates);
+      const a=animales.find(x=>x.id===id);
+      if(a)Object.assign(a,updates);
+    });
+    await batch.commit();
+    toast(estadoMap[tipo]+' registrado para '+ids.length+' animal'+(ids.length!==1?'es':''));
+    Object.keys(wins).forEach(k=>{if(lotes.find(l=>l.id===k))renderGrid(k);});
+    renderPadronWin();
+  }catch(err){console.error(err);toast('Error: '+err.message);}
+};
+
+// ── MAP CONTEXT MENU ──
+window.showMapCtx=(e,latlng)=>{
+  const menu=document.getElementById('ctx-menu');
+  menu.innerHTML=`
+    <div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Mapa</div>
+    <div class="ctx-item" onclick="closeCtx();toast('Dibujar lote: próximamente')">Nuevo lote...</div>
+    <div class="ctx-item" onclick="closeCtx();crearLabel(null)">Nuevo label...</div>
+  `;
+  const x=Math.min(e.clientX,window.innerWidth-200);
+  const y=Math.min(e.clientY,window.innerHeight-120);
+  menu.style.cssText=`display:block;left:${x}px;top:${y}px;`;
+};
+
+window.showPolyCtx=(e,lote)=>{
+  const menu=document.getElementById('ctx-menu');
+  menu.innerHTML=`
+    <div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">${lote.nombre}</div>
+    <div class="ctx-item" onclick="openLote('${lote.id}');closeCtx()">Abrir</div>
+    <div class="ctx-item" onclick="closeCtx();toast('Editar nombre: próximamente')">Editar nombre...</div>
+    <div class="ctx-item" onclick="closeCtx();toast('Editar polígono: próximamente')">Editar polígono...</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item red" onclick="closeCtx();toast('Eliminar: próximamente')">Eliminar lote...</div>
+  `;
+  const x=Math.min(e.clientX,window.innerWidth-220);
+  const y=Math.min(e.clientY,window.innerHeight-160);
+  menu.style.cssText=`display:block;left:${x}px;top:${y}px;`;
+};
+
+// ── WIN EMPTY AREA CONTEXT MENU ──
+window.showWinCtx=(e,loteId)=>{
+  const lote=lotes.find(l=>l.id===loteId);
+  const menu=document.getElementById('ctx-menu');
+  const labelItems=labels.map(lb=>`<div class="ctx-item" style="color:${lb.color};" onclick="if(selSet.size){ctxAsignarLabelById([...selSet],'${lb.id}');closeCtx();}else{toast('Seleccioná animales primero');}">● ${lb.name}</div>`).join('');
+  menu.innerHTML=`
+    <div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">${lote?.nombre||'Ventana'}</div>
+    <div class="ctx-item" onclick="ctxSelAll('${loteId}');closeCtx()">Seleccionar todos</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="crearLabel('${loteId}')">Nuevo label...</div>
+    ${labelItems?'<div class="ctx-sep"></div>'+labelItems:''}
+  `;
+  const x=Math.min(e.clientX,window.innerWidth-220);
+  const y=Math.min(e.clientY,window.innerHeight-160);
+  menu.style.cssText=`display:block;left:${x}px;top:${y}px;`;
 };
 
 
 // ── HISTORIA ──
 window.setWinTab=(loteId,tab)=>{
   winTab[loteId]=tab;
-  const lk=loteId.replace(/\s/g,'_');
+  const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
   const vwrap=document.getElementById('vwrap-'+lk);
   const hist=document.getElementById('hist-'+lk);
   const htab=document.getElementById('htab-'+lk);
   const gtab=document.getElementById('gtab-'+lk);
   if(!vwrap||!hist)return;
+  // Disable/enable view buttons and sort
+  const vbtns=vwrap.closest('.win')?.querySelectorAll('.vbtn:not(#htab-'+lk+'):not(#gtab-'+lk+')');
+  const sortEl=vwrap.closest('.win')?.querySelector('.sortsel');
   if(tab==='hist'){
     vwrap.style.display='none';hist.style.display='block';
     if(htab)htab.classList.add('act');if(gtab)gtab.classList.remove('act');
+    if(vbtns)vbtns.forEach(b=>{b.style.opacity='0.3';b.style.pointerEvents='none';});
+    if(sortEl){sortEl.style.opacity='0.3';sortEl.style.pointerEvents='none';}
+    // Clear hist-sum when switching back
     renderHistoria(loteId);
   }else{
     vwrap.style.display='flex';hist.style.display='none';
     if(gtab)gtab.classList.add('act');if(htab)htab.classList.remove('act');
+    if(vbtns)vbtns.forEach(b=>{b.style.opacity='';b.style.pointerEvents='';});
+    if(sortEl){sortEl.style.opacity='';sortEl.style.pointerEvents='';}
+    renderGrid(loteId); // restores lote-sum
     renderGrid(loteId);
   }
 };
 
 function renderHistoria(loteId){
-  const lk=loteId.replace(/\s/g,'_');
+  const lk=loteId.replace(/[^a-zA-Z0-9]/g,'_');
   const el=document.getElementById('hist-'+lk);if(!el)return;
   const lote=lotes.find(l=>l.id===loteId);
   const periodos=calcPeriodos(loteId);
   el.innerHTML=renderPeriodosHTML(periodos,lote);
+  // Update title summary in history mode too
+  const lk2=loteId.replace(/[^a-zA-Z0-9]/g,'_');
+  const sumEl2=document.getElementById('lote-sum-'+lk2);
+  if(sumEl2){
+    const hoy2=new Date();hoy2.setHours(0,0,0,0);
+    const ano2=hoy2.getFullYear();
+    const lote2=lotes.find(l=>l.id===loteId);
+    const nombre2=lote2?.nombre||'';
+    const anim2=animales.filter(a=>a.rodeo===nombre2);
+    const pAno2=periodos.filter(p=>new Date(p.ingreso+'T00:00:00').getFullYear()===ano2||(!p.egreso));
+    let diasAno2=0;
+    pAno2.forEach(p=>{
+      const ini=new Date(p.ingreso+'T00:00:00');
+      const fin=p.egreso?new Date(p.egreso+'T00:00:00'):hoy2;
+      const iniAno=new Date(ano2,0,1);
+      const desde=ini<iniAno?iniAno:ini;
+      const hasta=fin>hoy2?hoy2:fin;
+      if(hasta>=desde)diasAno2+=Math.round((hasta-desde)/864e5)+1;
+    });
+    const animTxt2=anim2.length?anim2.length+' animales':'sin animales';
+    const diasTxt2=diasAno2?diasAno2+'d ocupado en '+ano2:'';
+    sumEl2.textContent=diasTxt2?animTxt2+' · '+diasTxt2:animTxt2;
+  }
+  setTimeout(()=>{ el.scrollTop=el.scrollHeight; },50);
 }
 
 function renderPeriodosHTML(periodos,lote){
+  const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const DH=['L','M','X','J','V','S','D'];
   const hoy=new Date();hoy.setHours(0,0,0,0);
-  const hoyStr=hoy.toISOString().split('T')[0];
   const ha=lote?.ha||0;
-  const fmtF=f=>{if(!f)return'—';try{return new Date(f+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'});}catch(e){return f;}};
-  const diffD=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
-  const uid=Math.random().toString(36).slice(2);
-  const añoActual=hoy.getFullYear();
-  const pAño=periodos.filter(p=>new Date(p.ingreso+'T00:00:00').getFullYear()===añoActual);
-  let diasAño=0,cargaSum=0,cargaCount=0;
-  pAño.forEach(p=>{
-    const d=p.egreso?diffD(p.ingreso,p.egreso):diffD(p.ingreso,hoyStr);
-    diasAño+=Math.max(0,d);
-    const tot=Object.values(p.comp||{}).reduce((a,b)=>a+b,0);
-    if(ha&&tot){cargaSum+=tot/ha;cargaCount++;}
-  });
-  const cargaProm=cargaCount>0?(cargaSum/cargaCount).toFixed(1):'—';
-  let html=`<div style="display:flex;gap:8px;margin-bottom:14px;">
-    <div style="flex:1;background:rgba(34,197,94,0.07);border:0.5px solid rgba(34,197,94,0.2);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:600;color:#22c55e">${diasAño}</div><div style="font-size:10px;color:var(--mt);margin-top:2px">días ${añoActual}</div></div>
-    <div style="flex:1;background:rgba(245,158,11,0.07);border:0.5px solid rgba(245,158,11,0.2);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:600;color:#f59e0b">${pAño.length}</div><div style="font-size:10px;color:var(--mt);margin-top:2px">períodos</div></div>
-    <div style="flex:1;background:rgba(59,130,246,0.07);border:0.5px solid rgba(59,130,246,0.2);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:600;color:#3b82f6">${cargaProm}</div><div style="font-size:10px;color:var(--mt);margin-top:2px">cab/ha prom</div></div>
-  </div>`;
-  if(!periodos.length){return html+'<div style="text-align:center;color:var(--mt);font-size:13px;padding:20px 0">Sin historial de ocupación</div>';}
-  const rev=[...periodos].reverse();
-  let lastYear=null;
-  rev.forEach((p,i)=>{
-    const año=new Date(p.ingreso+'T00:00:00').getFullYear();
-    if(año!==lastYear){
-      html+=`<div style="display:flex;align-items:center;gap:8px;margin:${i===0?'0':10}px 0 10px;"><div style="flex:1;height:0.5px;background:var(--b2)"></div><span style="font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.5px">${año}</span><div style="flex:1;height:0.5px;background:var(--b2)"></div></div>`;
-      lastYear=año;
-    }
-    const dias=p.egreso?diffD(p.ingreso,p.egreso):diffD(p.ingreso,hoyStr);
-    const total=Object.values(p.comp||{}).reduce((a,b)=>a+b,0);
-    const carga=ha&&total?(total/ha).toFixed(1):'—';
-    const bColor=p.activo?'#3b82f6':'#22c55e';
-    const pills=Object.entries(p.comp||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])
-      .map(([k,v])=>`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--b);color:var(--mt)">${v} ${k}</span>`).join('');
-    const divId=`po-${uid}-${i}`;
-    html+=`<div style="margin-bottom:8px;border-radius:8px;overflow:hidden;border:0.5px solid ${p.activo?'rgba(59,130,246,0.3)':'var(--b2)'};">
-      <div style="background:${p.activo?'rgba(59,130,246,0.06)':'rgba(0,0,0,0.02)'};padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;" onclick="var d=document.getElementById('${divId}');d.style.display=d.style.display==='none'?'block':'none'">
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:500;color:var(--tx)">${fmtF(p.ingreso)} → ${p.activo?'<span style="color:#3b82f6">hoy</span>':fmtF(p.egreso)}</div>
-          <div style="font-size:11px;color:var(--mt);margin-top:2px">${dias}d · ${total} cab${carga!=='—'?' · '+carga+' cab/ha':''}</div>
-        </div>
-        <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:6px;background:${bColor}22;color:${bColor};flex-shrink:0">${p.activo?'en curso':'cerrado'}</span>
-      </div>
-      <div id="${divId}" style="display:none;padding:10px 12px;border-top:0.5px solid var(--b2);">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--b)"><span style="color:var(--mt)">Ingreso</span><span>${fmtF(p.ingreso)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--b)"><span style="color:var(--mt)">Egreso</span><span>${p.activo?'<span style="color:#3b82f6">en curso</span>':fmtF(p.egreso)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px${pills?';border-bottom:0.5px solid var(--b)':''}"><span style="color:var(--mt)">Carga</span><span style="color:#f59e0b">${carga} cab/ha</span></div>
-        ${pills?`<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:8px">${pills}</div>`:''}
-      </div>
-    </div>`;
-    const siguiente=rev[i+1];
-    if(!p.activo&&siguiente){
-      const dDescReal=diffD(siguiente.egreso||hoyStr,p.ingreso);
-      if(dDescReal>0)html+=`<div style="display:flex;align-items:center;gap:8px;margin:4px 0 8px;"><div style="flex:1;height:0.5px;background:rgba(245,158,11,0.3)"></div><span style="font-size:10px;color:#f59e0b;font-weight:500">descanso ${dDescReal}d</span><div style="flex:1;height:0.5px;background:rgba(245,158,11,0.3)"></div></div>`;
-    }
-  });
-  if(!periodos[periodos.length-1].activo){
-    const ult=periodos[periodos.length-1];
-    const dActual=diffD(ult.egreso,hoyStr);
-    if(dActual>0)html+=`<div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="flex:1;height:0.5px;background:rgba(245,158,11,0.3)"></div><span style="font-size:10px;color:#f59e0b;font-weight:500">descansando ${dActual}d</span><div style="flex:1;height:0.5px;background:rgba(245,158,11,0.3)"></div></div>`;
+  if(!periodos.length)return'<div style="text-align:center;color:var(--mt);font-size:13px;padding:20px 0">Sin historial de ocupación</div>';
+
+  // Build grupos (periodos + descansos)
+  const ocup=periodos.map((p,i)=>({id:'p'+i,tipo:'ocu',inicio:new Date(p.ingreso+'T00:00:00'),fin:p.egreso?new Date(p.egreso+'T00:00:00'):hoy,cab:Object.values(p.comp||{}).reduce((a,b)=>a+b,0),comp:p.comp||{},activo:p.activo}));
+  const rev=[...ocup].sort((a,b)=>b.inicio-a.inicio);
+  const descs=[];
+  for(let i=0;i<rev.length-1;i++){
+    const desde=new Date(rev[i+1].fin);desde.setDate(desde.getDate()+1);
+    const hasta=new Date(rev[i].inicio);hasta.setDate(hasta.getDate()-1);
+    if(hasta>=desde)descs.push({id:'d'+i,tipo:'desc',inicio:desde,fin:hasta,dias:Math.round((hasta-desde)/864e5)+1});
   }
+  const grupos=[...ocup,...descs];
+  const rangoInicio=rev[rev.length-1].inicio;
+
+  function getGrupo(f){return grupos.find(g=>f>=g.inicio&&f<=g.fin)||null;}
+  function fmtD(d){return d.getDate()+' '+MESES[d.getMonth()];}
+  function diffD(a,b){return Math.round((b-a)/864e5)+1;}
+
+  // Collect years
+  const anos=[];
+  let curA=rangoInicio.getFullYear();
+  while(curA<=hoy.getFullYear()){anos.push(curA);curA++;}
+
+  const uid='h'+Math.random().toString(36).slice(2,6);
+  let activeGroup=null;
+
+  let html='<div id="hist-wrap-'+uid+'">';
+
+  anos.forEach(ano=>{
+    html+=`<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:500;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">${ano}</div>`;
+
+    for(let row=0;row<3;row++){
+      const mesesRow=[];
+      for(let col=0;col<4;col++){const m=row*4+col;if(m<12)mesesRow.push(m);}
+      const hasData=mesesRow.some(m=>{
+        for(let d=1;d<=new Date(ano,m+1,0).getDate();d++){
+          const f=new Date(ano,m,d);
+          if(f>=rangoInicio&&f<=hoy)return true;
+        }
+        return false;
+      });
+      if(!hasData)continue;
+
+      html+=`<div class="cal-row-${uid}" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px;">`;
+      mesesRow.forEach(m=>{
+        const diasEnMes=new Date(ano,m+1,0).getDate();
+        const primerDia=(new Date(ano,m,1).getDay()+6)%7;
+        let cells='';
+        for(let i=0;i<primerDia;i++) cells+=`<div style="width:18px;height:18px;"></div>`;
+        for(let d=1;d<=diasEnMes;d++){
+          const fecha=new Date(ano,m,d);
+          const gr=getGrupo(fecha);
+          const enRango=fecha>=rangoInicio&&fecha<=hoy&&!gr;
+          let bg='transparent',col='var(--mt)',fw='400',cursor='default',attrs='';
+          if(gr){
+            cursor='pointer';
+            const tipMsg=gr.tipo==='ocu'?`ocupado · ${diffD(gr.inicio,gr.fin)}d`:`descanso · ${gr.dias}d`;
+            attrs=`data-gid="${gr.id}" data-gtipo="${gr.tipo}" data-uid="${uid}" data-gmsg="${tipMsg}"`;
+            if(gr.tipo==='ocu'){bg='#185FA5';col='white';fw='500';}
+            else{bg='rgba(0,0,0,0.07)';}
+          } else if(enRango){bg='rgba(0,0,0,0.04)';}
+          cells+=`<div ${attrs} style="width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;background:${bg};color:${col};font-weight:${fw};cursor:${cursor};transition:opacity .5s ease;">${d}</div>`;
+        }
+        html+=`<div>
+          <div style="font-size:10px;color:var(--mt);margin-bottom:4px;text-align:center;">${MESES[m]}</div>
+          <div style="display:grid;grid-template-columns:repeat(7,18px);gap:1px;margin-bottom:2px;">${DH.map(d=>`<div style="width:18px;text-align:center;font-size:7px;color:var(--mt);">${d}</div>`).join('')}</div>
+          <div style="display:grid;grid-template-columns:repeat(7,18px);gap:1px;">${cells}</div>
+        </div>`;
+      });
+      html+=`</div>`;
+
+      // Panels for groups ending in this row
+      grupos.forEach(g=>{
+        if(g.fin.getFullYear()===ano&&Math.floor(g.fin.getMonth()/4)===row){
+          let detHtml='';
+          if(g.tipo==='ocu'){
+            const dias=diffD(g.inicio,g.fin);
+            const carga=ha&&g.cab?(g.cab/ha).toFixed(1):'—';
+            const cats=Object.entries(g.comp).filter(([,v])=>v>0).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:0.5px solid var(--b);"><span style="color:var(--mt);">${k}</span><span style="font-weight:500;">${v} cab</span></div>`).join('');
+            detHtml=`<div style="font-size:11px;font-weight:500;color:#185FA5;margin-bottom:10px;">${g.activo?'En curso':'Ocupado'} · ${fmtD(g.inicio)} → ${g.activo?'hoy':fmtD(g.fin)}</div>
+              <div style="display:flex;gap:24px;margin-bottom:10px;">
+                <div><div style="font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Días</div><div style="font-size:13px;font-weight:500;">${dias}</div></div>
+                <div><div style="font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Total</div><div style="font-size:13px;font-weight:500;">${g.cab} cab</div></div>
+                <div><div style="font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Carga</div><div style="font-size:13px;font-weight:500;">${carga} cab/ha</div></div>
+              </div>${cats}`;
+          } else {
+            detHtml=`<div style="font-size:11px;font-weight:500;color:var(--mt);margin-bottom:6px;">Descanso · ${fmtD(g.inicio)} → ${fmtD(g.fin)}</div>
+              <div style="font-size:13px;font-weight:500;">${g.dias} días sin ocupar</div>`;
+          }
+          html+=`<div id="det-${uid}-${g.id}" style="display:none;padding:20px 2px 32px;">${detHtml}</div>`;
+        }
+      });
+    }
+    html+=`</div>`;
+  });
+  html+='</div>';
+
+  // Setup tooltip + interactions after render via setTimeout
+  setTimeout(()=>{
+    const wrap=document.getElementById('hist-wrap-'+uid);
+    if(!wrap)return;
+    let tip=document.getElementById('hist-tip-'+uid);
+    if(!tip){tip=document.createElement('div');tip.id='hist-tip-'+uid;tip.style.cssText='position:fixed;background:#1a1a1a;color:white;font-size:11px;padding:5px 9px;border-radius:6px;pointer-events:none;display:none;z-index:9999;';document.body.appendChild(tip);}
+    let activeGid=null;
+    function hl(id,on){
+      wrap.querySelectorAll(`[data-gid="${id}"]`).forEach(el=>{
+        if(on){el.style.background=el.dataset.gtipo==='ocu'?'#0d47a1':'#b0c8dc';el.style.transform='scale(1.2)';}
+        else if(id!==activeGid){el.style.background=el.dataset.gtipo==='ocu'?'#185FA5':'rgba(0,0,0,0.07)';el.style.transform='';}
+      });
+    }
+    wrap.querySelectorAll('[data-gid]').forEach(el=>{
+      el.addEventListener('mouseenter',e=>{if(el.dataset.gid!==activeGid)hl(el.dataset.gid,true);tip.textContent=el.dataset.gmsg;tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';});
+      el.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';});
+      el.addEventListener('mouseleave',()=>{if(el.dataset.gid!==activeGid)hl(el.dataset.gid,false);tip.style.display='none';});
+      el.addEventListener('click',()=>{
+        tip.style.display='none';
+        wrap.querySelectorAll('[id^="det-'+uid+'"]').forEach(p=>p.style.display='none');
+        if(activeGid===el.dataset.gid){activeGid=null;hl(el.dataset.gid,false);return;}
+        if(activeGid){hl(activeGid,false);}
+        activeGid=el.dataset.gid;
+        const panel=document.getElementById('det-'+uid+'-'+activeGid);
+        if(panel){
+          panel.style.display='block';
+          const next=panel.nextElementSibling;
+          if(next)next.style.marginTop='16px';
+        }
+        hl(activeGid,true);
+      });
+    });
+  },0);
+
   return html;
 }
+
+
+// ── VER MENU ──
+const VER_OPTIONS=[
+  {v:'xs',label:'Lista'},
+  {v:'sm',label:'Iconos pequeños'},
+  {v:'md',label:'Iconos medianos'},
+  {v:'lg',label:'Iconos grandes'},
+];
+window.showVerMenu=(e,loteId)=>{
+  e.stopPropagation();
+  closeCtx();
+  const menu=document.getElementById('ctx-menu');
+  const cur=viewSt[loteId]||'sm';
+  menu.innerHTML=`<div style="padding:4px 10px;font-size:10px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;">Vista</div>`+
+    VER_OPTIONS.map(o=>`<div class="ctx-item${cur===o.v?' act':''}" style="${cur===o.v?'font-weight:600;color:var(--bl);':''}" onclick="setViewFromMenu('${loteId}','${o.v}')">${o.label}${cur===o.v?' ✓':''}</div>`).join('');
+  const rect=e.target.getBoundingClientRect();
+  menu.style.cssText=`display:block;left:${rect.left}px;top:${rect.bottom+2}px;min-width:160px;`;
+};
+window.setViewFromMenu=(loteId,v)=>{
+  closeCtx();
+  if(loteId==='__padron__'){setPadronView(v);}
+  else{setView(loteId,v);}
+};
 
 // ── WIN MANAGEMENT ──
 function focus(key){
